@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}Your Health Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Health Report</h1>
+      <p class="page-subtitle">Generated on {{ prediction.created_at | default('today') }}</p>
+    </div>
+    <a href="/patient/form" class="btn-outline">Retake Assessment</a>
+  </div>
+
+  <!-- ── TOP SUMMARY STRIP ──────────────────────────────── -->
+  <div class="summary-strip">
+
+    <div class="summary-card summary-card--disease">
+      <div class="sumcard-label">Predicted Condition</div>
+      <div class="sumcard-value">{{ prediction.predicted_disease }}</div>
+      <div class="sumcard-sub">Based on your reported symptoms</div>
+    </div>
+
+    <div class="summary-card summary-card--risk risk-{{ prediction.risk_level }}">
+      <div class="sumcard-label">Risk Level</div>
+      <div class="sumcard-value risk-badge risk-{{ prediction.risk_level }}">
+        {% if prediction.risk_level == 'high' %}⚠ High Risk
+        {% elif prediction.risk_level == 'medium' %}◈ Medium Risk
+        {% else %}✓ Low Risk{% endif %}
+      </div>
+      <div class="sumcard-sub">
+        {% if prediction.risk_level == 'high' %}Immediate consultation recommended
+        {% elif prediction.risk_level == 'medium' %}Monitor and follow suggestions
+        {% else %}Continue healthy habits{% endif %}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sumcard-label">Confidence Score</div>
+      <div class="sumcard-value">{{ prediction.confidence_score }}%</div>
+      <div class="confidence-bar-wrap">
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width: {{ prediction.confidence_score }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-card summary-card--mri honesty-{{ prediction.honesty_flag }}">
+      <div class="sumcard-label">MRI Consistency</div>
+      <div class="sumcard-value">
+        {% if prediction.honesty_flag == 'trusted' %}
+          <span class="trust-badge trust-ok">✓ Consistent</span>
+        {% else %}
+          <span class="trust-badge trust-warn">⚠ Review Needed</span>
+        {% endif %}
+      </div>
+      <div class="sumcard-sub">
+        {% if prediction.mri_consistency == 'no_mri' %}No MRI uploaded
+        {% elif prediction.mri_consistency == 'consistent' %}MRI matches reported symptoms
+        {% else %}MRI does not match answers{% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── MAIN GRID ─────────────────────────────────────── -->
+  <div class="dash-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="dash-col">
+
+      <!-- Suggestions: Precautions -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🛡️</span>
+          <div>
+            <h3>Precautions to Take</h3>
+            <p>Immediate actions you should follow</p>
+          </div>
+        </div>
+        <ul class="suggestion-list">
+          {% for item in suggestions.precautions %}
+          <li class="suggestion-item suggestion-item--warn">
+            <span class="sug-icon">⚠</span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Suggestions: Improvements -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">📈</span>
+          <div>
+            <h3>Health Improvements</h3>
+            <p>Steps to improve your long-term wellbeing</p>
+          </div>
+        </div>
+        <ul class="suggestion-list">
+          {% for item in suggestions.improvements %}
+          <li class="suggestion-item suggestion-item--ok">
+            <span class="sug-icon">✓</span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="dash-col">
+
+      <!-- MRI Validation Detail -->
+      <div class="dash-card dash-card--mri {% if prediction.honesty_flag == 'review_needed' %}dash-card--alert{% endif %}">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🔬</span>
+          <div>
+            <h3>MRI Consistency Check</h3>
+            <p>Cross-referencing your answers with uploaded scan</p>
+          </div>
+        </div>
+
+        <div class="mri-result-block">
+          {% if prediction.mri_consistency == 'no_mri' %}
+          <div class="mri-status mri-neutral">
+            <span class="mri-status-icon">📋</span>
+            <div>
+              <strong>No MRI Uploaded</strong>
+              <p>Prediction is based on your questionnaire answers only.
+                 Uploading an MRI allows us to verify consistency.</p>
+            </div>
+          </div>
+          {% elif prediction.mri_consistency == 'consistent' %}
+          <div class="mri-status mri-ok">
+            <span class="mri-status-icon">✓</span>
+            <div>
+              <strong>Answers are Consistent</strong>
+              <p>Your MRI upload aligns with your reported symptoms.
+                 Your answers appear reliable.</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="mri-status mri-warn">
+            <span class="mri-status-icon">⚠</span>
+            <div>
+              <strong>Inconsistency Detected</strong>
+              <p>Your MRI upload does not align with your reported symptoms.
+                 We recommend a manual review by a healthcare professional.</p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="mri-checks">
+          <div class="mri-check-row">
+            <span class="mri-chk-label">File uploaded</span>
+            <span class="mri-chk-val {% if prediction.mri_consistency != 'no_mri' %}val-ok{% else %}val-no{% endif %}">
+              {% if prediction.mri_consistency != 'no_mri' %}Yes{% else %}No{% endif %}
+            </span>
+          </div>
+          <div class="mri-check-row">
+            <span class="mri-chk-label">Image is valid</span>
+            <span class="mri-chk-val {% if prediction.mri_consistency != 'no_mri' %}val-ok{% else %}val-no{% endif %}">
+              {% if prediction.mri_consistency != 'no_mri' %}Yes{% else %}—{% endif %}
+            </span>
+          </div>
+          <div class="mri-check-row">
+            <span class="mri-chk-label">Matches symptoms</span>
+            <span class="mri-chk-val
+              {% if prediction.mri_consistency == 'consistent' %}val-ok
+              {% elif prediction.mri_consistency == 'inconsistent' %}val-warn
+              {% else %}val-no{% endif %}">
+              {% if prediction.mri_consistency == 'consistent' %}Yes
+              {% elif prediction.mri_consistency == 'inconsistent' %}No ⚠
+              {% else %}—{% endif %}
+            </span>
+          </div>
+          <div class="mri-check-row">
+            <span class="mri-chk-label">Trust status</span>
+            <span class="mri-chk-val {% if prediction.honesty_flag == 'trusted' %}val-ok{% else %}val-warn{% endif %}">
+              {% if prediction.honesty_flag == 'trusted' %}Trusted{% else %}Review needed{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insurance CTA -->
+      <div class="dash-card dash-card--cta">
+        <div class="cta-icon">🛡️</div>
+        <h3>Get Insurance Recommendation</h3>
+        <p>
+          Based on your <strong>{{ prediction.risk_level }} risk</strong> prediction,
+          we have matched you with the most suitable health insurance plan.
+        </p>
+        <a href="/insurance/plans?prediction_id={{ prediction.id }}" class="btn-primary btn-full">
+          View Insurance Plans &rarr;
+        </a>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="dash-card dash-card--disclaimer">
+        <div class="disclaimer-icon">⚕</div>
+        <p>
+          <strong>Medical Disclaimer:</strong> This prediction is generated by an AI model
+          trained on limited data. It is for <strong>educational purposes only</strong> and
+          must not replace a professional medical diagnosis. Always consult a licensed doctor.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Animate confidence bar on load
+  window.addEventListener('load', () => {
+    const fill = document.querySelector('.confidence-fill');
+    if (fill) {
+      const target = fill.style.width;
+      fill.style.width = '0%';
+      setTimeout(() => { fill.style.width = target; }, 300);
+    }
+  });
+</script>
+{% endblock %}

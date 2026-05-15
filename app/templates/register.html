@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+
+  <!-- Left panel -->
+  <div class="auth-panel-left">
+    <div class="auth-brand-block">
+      <div class="auth-logo">✦</div>
+      <h1 class="auth-headline">Start your<br /><em>health journey.</em></h1>
+      <p class="auth-sub">
+        Create your account in seconds. Everything you share is stored
+        securely and used only to provide personalised health insights.
+      </p>
+    </div>
+    <div class="auth-steps">
+      <div class="auth-step">
+        <span class="step-num">01</span>
+        <span class="step-label">Create your account</span>
+      </div>
+      <div class="auth-step-line"></div>
+      <div class="auth-step">
+        <span class="step-num">02</span>
+        <span class="step-label">Fill health questionnaire</span>
+      </div>
+      <div class="auth-step-line"></div>
+      <div class="auth-step">
+        <span class="step-num">03</span>
+        <span class="step-label">Get your prediction & plan</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="auth-panel-right">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <h2>Create account</h2>
+        <p>All fields are required</p>
+      </div>
+
+      <form action="/auth/register" method="POST" class="auth-form" id="registerForm">
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="full_name" class="field-label">Full name</label>
+            <input
+              type="text"
+              id="full_name"
+              name="full_name"
+              class="field-input"
+              placeholder="Rahul Sharma"
+              required
+            />
+          </div>
+          <div class="field-group">
+            <label for="age" class="field-label">Age</label>
+            <input
+              type="number"
+              id="age"
+              name="age"
+              class="field-input"
+              placeholder="28"
+              min="1"
+              max="120"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Gender</label>
+          <div class="radio-row">
+            <label class="radio-opt">
+              <input type="radio" name="gender" value="male" required />
+              <span class="radio-box">Male</span>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="gender" value="female" />
+              <span class="radio-box">Female</span>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="gender" value="other" />
+              <span class="radio-box">Other</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="reg_email" class="field-label">Email address</label>
+          <input
+            type="email"
+            id="reg_email"
+            name="email"
+            class="field-input"
+            placeholder="you@example.com"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="field-group">
+          <label for="reg_password" class="field-label">Password</label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="reg_password"
+              name="password"
+              class="field-input"
+              placeholder="Minimum 8 characters"
+              minlength="8"
+              required
+            />
+            <button type="button" class="input-eye" onclick="togglePassword('reg_password', this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <!-- Password strength bar -->
+          <div class="pwd-strength" id="pwdStrength">
+            <div class="pwd-bar">
+              <div class="pwd-fill" id="pwdFill"></div>
+            </div>
+            <span class="pwd-label" id="pwdLabel">Enter password</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="confirm_password" class="field-label">Confirm password</label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              class="field-input"
+              placeholder="Re-enter password"
+              required
+            />
+          </div>
+          <p class="field-hint" id="pwdMatchHint" style="display:none; color: var(--clr-danger);">
+            Passwords do not match.
+          </p>
+        </div>
+
+        <div class="field-group">
+          <label class="checkbox-opt">
+            <input type="checkbox" name="consent" required />
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label">
+              I consent to my health data being processed for prediction purposes only.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full" id="registerBtn">
+          <span class="btn-text">Create account</span>
+          <span class="btn-spinner hidden" id="regSpinner"></span>
+        </button>
+
+      </form>
+
+      <div class="auth-divider"><span>Already registered?</span></div>
+      <a href="/auth/login" class="btn-outline btn-full">Back to login</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Password strength meter
+  document.getElementById('reg_password').addEventListener('input', function () {
+    const val = this.value;
+    const fill = document.getElementById('pwdFill');
+    const label = document.getElementById('pwdLabel');
+    let strength = 0;
+    if (val.length >= 8) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const levels = ['', 'weak', 'fair', 'good', 'strong'];
+    const texts  = ['Enter password', 'Weak', 'Fair', 'Good', 'Strong'];
+    fill.className = 'pwd-fill ' + (levels[strength] || '');
+    fill.style.width = (strength * 25) + '%';
+    label.textContent = texts[strength] || 'Enter password';
+  });
+
+  // Password match check
+  document.getElementById('confirm_password').addEventListener('input', function () {
+    const hint = document.getElementById('pwdMatchHint');
+    const pwd  = document.getElementById('reg_password').value;
+    hint.style.display = this.value && this.value !== pwd ? 'block' : 'none';
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,594 @@
+{% extends "base.html" %}
+{% block title %}Health Questionnaire{% endblock %}
+
+{% block content %}
+<div class="form-page">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <h1 class="page-title">Health Questionnaire</h1>
+    <p class="page-subtitle">
+      Answer honestly for an accurate prediction.
+      <strong>All data is encrypted and stored securely.</strong>
+    </p>
+  </div>
+
+  <!-- Step progress indicator -->
+  <div class="step-indicator">
+    <div class="step-item active" id="step-ind-1">
+      <div class="step-circle">1</div>
+      <span class="step-label">Symptoms</span>
+    </div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-item" id="step-ind-2">
+      <div class="step-circle">2</div>
+      <span class="step-label">Lifestyle</span>
+    </div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-item" id="step-ind-3">
+      <div class="step-circle">3</div>
+      <span class="step-label">Family History</span>
+    </div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-item" id="step-ind-4">
+      <div class="step-circle">4</div>
+      <span class="step-label">MRI Upload</span>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <form action="/patient/submit-form" method="POST" enctype="multipart/form-data" id="healthForm">
+    <input type="hidden" name="patient_id" value="{{ patient_id }}" />
+
+    <!-- ── STEP 1: SYMPTOMS ──────────────────────────────── -->
+    <div class="form-step" id="step-1">
+      <div class="form-card">
+        <div class="card-header">
+          <span class="card-icon">🩺</span>
+          <div>
+            <h3>Current Symptoms</h3>
+            <p>Select all symptoms you have experienced in the <strong>last 30 days</strong>.</p>
+          </div>
+        </div>
+
+        <div class="symptom-grid">
+
+          <label class="symptom-card" data-symptom="fever">
+            <input type="checkbox" name="fever" value="1" class="sym-check" />
+            <div class="sym-icon">🌡️</div>
+            <div class="sym-name">Fever</div>
+            <div class="sym-desc">Body temperature above 100°F</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="cough">
+            <input type="checkbox" name="cough" value="1" class="sym-check" />
+            <div class="sym-icon">😮‍💨</div>
+            <div class="sym-name">Cough</div>
+            <div class="sym-desc">Persistent dry or wet cough</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="chest_pain">
+            <input type="checkbox" name="chest_pain" value="1" class="sym-check" />
+            <div class="sym-icon">💔</div>
+            <div class="sym-name">Chest Pain</div>
+            <div class="sym-desc">Tightness, pressure or pain</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="shortness_of_breath">
+            <input type="checkbox" name="shortness_of_breath" value="1" class="sym-check" />
+            <div class="sym-icon">🌬️</div>
+            <div class="sym-name">Breathlessness</div>
+            <div class="sym-desc">Difficulty breathing</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="fatigue">
+            <input type="checkbox" name="fatigue" value="1" class="sym-check" />
+            <div class="sym-icon">😴</div>
+            <div class="sym-name">Fatigue</div>
+            <div class="sym-desc">Constant tiredness or weakness</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="headache">
+            <input type="checkbox" name="headache" value="1" class="sym-check" />
+            <div class="sym-icon">🤕</div>
+            <div class="sym-name">Headache</div>
+            <div class="sym-desc">Frequent or severe head pain</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="joint_pain">
+            <input type="checkbox" name="joint_pain" value="1" class="sym-check" />
+            <div class="sym-icon">🦴</div>
+            <div class="sym-name">Joint Pain</div>
+            <div class="sym-desc">Pain in knees, wrists or hips</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="skin_rash">
+            <input type="checkbox" name="skin_rash" value="1" class="sym-check" />
+            <div class="sym-icon">🔴</div>
+            <div class="sym-name">Skin Rash</div>
+            <div class="sym-desc">Unusual redness or irritation</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="nausea">
+            <input type="checkbox" name="nausea" value="1" class="sym-check" />
+            <div class="sym-icon">🤢</div>
+            <div class="sym-name">Nausea</div>
+            <div class="sym-desc">Feeling of sickness or vomiting</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+          <label class="symptom-card" data-symptom="weight_loss">
+            <input type="checkbox" name="weight_loss" value="1" class="sym-check" />
+            <div class="sym-icon">⚖️</div>
+            <div class="sym-name">Weight Loss</div>
+            <div class="sym-desc">Unexplained weight drop</div>
+            <div class="sym-check-mark">✓</div>
+          </label>
+
+        </div>
+
+        <div class="selected-count" id="selectedCount">0 symptoms selected</div>
+      </div>
+
+      <div class="form-nav">
+        <div></div>
+        <button type="button" class="btn-primary" onclick="nextStep(1)">
+          Next: Lifestyle &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: LIFESTYLE ──────────────────────────────── -->
+    <div class="form-step hidden" id="step-2">
+      <div class="form-card">
+        <div class="card-header">
+          <span class="card-icon">🏃</span>
+          <div>
+            <h3>Lifestyle & Habits</h3>
+            <p>Honest answers help us give you the most accurate predictions.</p>
+          </div>
+        </div>
+
+        <div class="lifestyle-grid">
+
+          <!-- Smoker -->
+          <div class="lifestyle-row">
+            <div class="lifestyle-label">
+              <span class="lf-icon">🚬</span>
+              <div>
+                <strong>Do you smoke?</strong>
+                <small>Cigarettes, bidis, or any tobacco product</small>
+              </div>
+            </div>
+            <div class="toggle-group">
+              <label class="toggle-opt">
+                <input type="radio" name="smoker" value="1" required />
+                <span class="toggle-box">Yes</span>
+              </label>
+              <label class="toggle-opt">
+                <input type="radio" name="smoker" value="0" />
+                <span class="toggle-box">No</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Alcohol -->
+          <div class="lifestyle-row">
+            <div class="lifestyle-label">
+              <span class="lf-icon">🍺</span>
+              <div>
+                <strong>Do you consume alcohol?</strong>
+                <small>Any alcoholic beverage regularly</small>
+              </div>
+            </div>
+            <div class="toggle-group">
+              <label class="toggle-opt">
+                <input type="radio" name="alcohol_use" value="1" required />
+                <span class="toggle-box">Yes</span>
+              </label>
+              <label class="toggle-opt">
+                <input type="radio" name="alcohol_use" value="0" />
+                <span class="toggle-box">No</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Exercise -->
+          <div class="lifestyle-row lifestyle-row--stack">
+            <div class="lifestyle-label">
+              <span class="lf-icon">💪</span>
+              <div>
+                <strong>Exercise frequency</strong>
+                <small>Physical activity per week</small>
+              </div>
+            </div>
+            <div class="select-group">
+              <label class="select-opt">
+                <input type="radio" name="exercise_frequency" value="never" required />
+                <span class="select-box">
+                  <span class="sel-title">Never</span>
+                  <span class="sel-sub">Sedentary lifestyle</span>
+                </span>
+              </label>
+              <label class="select-opt">
+                <input type="radio" name="exercise_frequency" value="sometimes" />
+                <span class="select-box">
+                  <span class="sel-title">Sometimes</span>
+                  <span class="sel-sub">1–2 times per week</span>
+                </span>
+              </label>
+              <label class="select-opt">
+                <input type="radio" name="exercise_frequency" value="regular" />
+                <span class="select-box">
+                  <span class="sel-title">Regular</span>
+                  <span class="sel-sub">3+ times per week</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Diet -->
+          <div class="lifestyle-row lifestyle-row--stack">
+            <div class="lifestyle-label">
+              <span class="lf-icon">🥗</span>
+              <div>
+                <strong>Diet quality</strong>
+                <small>How you would rate your daily eating habits</small>
+              </div>
+            </div>
+            <div class="select-group">
+              <label class="select-opt">
+                <input type="radio" name="diet_quality" value="poor" required />
+                <span class="select-box">
+                  <span class="sel-title">Poor</span>
+                  <span class="sel-sub">Lots of junk food</span>
+                </span>
+              </label>
+              <label class="select-opt">
+                <input type="radio" name="diet_quality" value="average" />
+                <span class="select-box">
+                  <span class="sel-title">Average</span>
+                  <span class="sel-sub">Mixed, could be better</span>
+                </span>
+              </label>
+              <label class="select-opt">
+                <input type="radio" name="diet_quality" value="good" />
+                <span class="select-box">
+                  <span class="sel-title">Good</span>
+                  <span class="sel-sub">Balanced, home-cooked</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Blood pressure -->
+          <div class="lifestyle-row lifestyle-row--stack">
+            <div class="lifestyle-label">
+              <span class="lf-icon">🩸</span>
+              <div>
+                <strong>Blood pressure (self-reported)</strong>
+                <small>Based on last doctor visit or home monitor</small>
+              </div>
+            </div>
+            <div class="select-group">
+              <label class="select-opt">
+                <input type="radio" name="blood_pressure" value="normal" required />
+                <span class="select-box">
+                  <span class="sel-title">Normal</span>
+                  <span class="sel-sub">120/80 or below</span>
+                </span>
+              </label>
+              <label class="select-opt">
+                <input type="radio" name="blood_pressure" value="high" />
+                <span class="select-box">
+                  <span class="sel-title">High</span>
+                  <span class="sel-sub">Above 140/90</span>
+                </span>
+              </label>
+              <label class="select-opt">
+                <input type="radio" name="blood_pressure" value="low" />
+                <span class="select-box">
+                  <span class="sel-title">Low</span>
+                  <span class="sel-sub">Below 90/60</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Blood sugar -->
+          <div class="lifestyle-row">
+            <div class="lifestyle-label">
+              <span class="lf-icon">🍬</span>
+              <div>
+                <strong>Blood sugar level</strong>
+                <small>Based on last lab test</small>
+              </div>
+            </div>
+            <div class="toggle-group">
+              <label class="toggle-opt">
+                <input type="radio" name="blood_sugar" value="normal" required />
+                <span class="toggle-box">Normal</span>
+              </label>
+              <label class="toggle-opt">
+                <input type="radio" name="blood_sugar" value="high" />
+                <span class="toggle-box">High</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-nav">
+        <button type="button" class="btn-outline" onclick="prevStep(2)">&larr; Back</button>
+        <button type="button" class="btn-primary" onclick="nextStep(2)">
+          Next: Family History &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: FAMILY HISTORY ──────────────────────── -->
+    <div class="form-step hidden" id="step-3">
+      <div class="form-card">
+        <div class="card-header">
+          <span class="card-icon">👨‍👩‍👧</span>
+          <div>
+            <h3>Family Medical History</h3>
+            <p>Has any blood relative (parent, sibling, grandparent) been diagnosed with:</p>
+          </div>
+        </div>
+
+        <div class="fam-grid">
+
+          <div class="fam-card">
+            <div class="fam-icon">🫀</div>
+            <div class="fam-info">
+              <strong>Heart Disease</strong>
+              <small>Heart attack, stroke, coronary artery disease</small>
+            </div>
+            <div class="toggle-group">
+              <label class="toggle-opt">
+                <input type="radio" name="family_history_heart" value="1" required />
+                <span class="toggle-box">Yes</span>
+              </label>
+              <label class="toggle-opt">
+                <input type="radio" name="family_history_heart" value="0" />
+                <span class="toggle-box">No</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="fam-card">
+            <div class="fam-icon">🍬</div>
+            <div class="fam-info">
+              <strong>Diabetes</strong>
+              <small>Type 1 or Type 2 diabetes</small>
+            </div>
+            <div class="toggle-group">
+              <label class="toggle-opt">
+                <input type="radio" name="family_history_diabetes" value="1" required />
+                <span class="toggle-box">Yes</span>
+              </label>
+              <label class="toggle-opt">
+                <input type="radio" name="family_history_diabetes" value="0" />
+                <span class="toggle-box">No</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="fam-card">
+            <div class="fam-icon">🎗️</div>
+            <div class="fam-info">
+              <strong>Cancer</strong>
+              <small>Any type of malignancy</small>
+            </div>
+            <div class="toggle-group">
+              <label class="toggle-opt">
+                <input type="radio" name="family_history_cancer" value="1" required />
+                <span class="toggle-box">Yes</span>
+              </label>
+              <label class="toggle-opt">
+                <input type="radio" name="family_history_cancer" value="0" />
+                <span class="toggle-box">No</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="info-note">
+          <span class="info-icon">ℹ</span>
+          Family history does not mean you will get a disease — it helps our model
+          assess genetic risk factors for a more accurate prediction.
+        </div>
+      </div>
+
+      <div class="form-nav">
+        <button type="button" class="btn-outline" onclick="prevStep(3)">&larr; Back</button>
+        <button type="button" class="btn-primary" onclick="nextStep(3)">
+          Next: MRI Upload &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: MRI UPLOAD ────────────────────────────── -->
+    <div class="form-step hidden" id="step-4">
+      <div class="form-card">
+        <div class="card-header">
+          <span class="card-icon">🔬</span>
+          <div>
+            <h3>MRI / Scan Upload <span class="badge-opt">Optional</span></h3>
+            <p>
+              Upload an MRI or scan if you have one. This lets us cross-check
+              your answers for a more reliable result.
+            </p>
+          </div>
+        </div>
+
+        <!-- Upload zone -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('mri_file').click()">
+          <div class="upload-icon">📁</div>
+          <div class="upload-title">Click or drag & drop your MRI file</div>
+          <div class="upload-sub">Accepted formats: JPG, PNG, DICOM, PDF — Max 10 MB</div>
+          <input
+            type="file"
+            id="mri_file"
+            name="mri_file"
+            accept=".jpg,.jpeg,.png,.dcm,.pdf"
+            style="display:none"
+            onchange="handleFileSelect(this)"
+          />
+        </div>
+
+        <!-- File preview (hidden until file selected) -->
+        <div class="file-preview hidden" id="filePreview">
+          <div class="file-preview-icon">📄</div>
+          <div class="file-preview-info">
+            <span class="file-name" id="fileName">—</span>
+            <span class="file-size" id="fileSize">—</span>
+          </div>
+          <button type="button" class="file-remove" onclick="removeFile()">✕ Remove</button>
+        </div>
+
+        <!-- What we check note -->
+        <div class="mri-note-grid">
+          <div class="mri-note-item">
+            <span class="mri-note-icon check">✓</span>
+            <span>We verify image is a real medical scan (size & format check)</span>
+          </div>
+          <div class="mri-note-item">
+            <span class="mri-note-icon check">✓</span>
+            <span>We compare MRI presence with your reported symptoms</span>
+          </div>
+          <div class="mri-note-item">
+            <span class="mri-note-icon check">✓</span>
+            <span>Inconsistencies are flagged for medical review</span>
+          </div>
+          <div class="mri-note-item">
+            <span class="mri-note-icon info">ℹ</span>
+            <span>Uploading MRI but reporting zero symptoms will be flagged</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="form-nav">
+        <button type="button" class="btn-outline" onclick="prevStep(4)">&larr; Back</button>
+        <button type="submit" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+          <span class="submit-icon">🧠</span>
+          <span class="btn-text">Run Prediction</span>
+          <span class="btn-spinner hidden" id="submitSpinner"></span>
+        </button>
+      </div>
+
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Step navigation ──────────────────────────────────────────
+  let currentStep = 1;
+  const totalSteps = 4;
+
+  function showStep(n) {
+    document.querySelectorAll('.form-step').forEach(s => s.classList.add('hidden'));
+    document.getElementById('step-' + n).classList.remove('hidden');
+    document.querySelectorAll('.step-item').forEach((el, i) => {
+      el.classList.toggle('active', i + 1 === n);
+      el.classList.toggle('done', i + 1 < n);
+    });
+    document.querySelectorAll('.step-line').forEach((el, i) => {
+      el.classList.toggle('done', i + 1 < n);
+    });
+    currentStep = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextStep(from) {
+    if (from === 1) { showStep(2); return; }
+    if (from === 2) {
+      const fields = ['smoker','alcohol_use','exercise_frequency','diet_quality','blood_pressure','blood_sugar'];
+      for (const f of fields) {
+        if (!document.querySelector(`input[name="${f}"]:checked`)) {
+          alert('Please answer all questions in this section.'); return;
+        }
+      }
+      showStep(3); return;
+    }
+    if (from === 3) {
+      const fields = ['family_history_heart','family_history_diabetes','family_history_cancer'];
+      for (const f of fields) {
+        if (!document.querySelector(`input[name="${f}"]:checked`)) {
+          alert('Please answer all family history questions.'); return;
+        }
+      }
+      showStep(4); return;
+    }
+  }
+
+  function prevStep(from) { showStep(from - 1); }
+
+  // ── Symptom cards ────────────────────────────────────────────
+  document.querySelectorAll('.symptom-card').forEach(card => {
+    const cb = card.querySelector('.sym-check');
+    cb.addEventListener('change', () => {
+      card.classList.toggle('selected', cb.checked);
+      updateCount();
+    });
+  });
+
+  function updateCount() {
+    const n = document.querySelectorAll('.sym-check:checked').length;
+    document.getElementById('selectedCount').textContent =
+      n === 0 ? 'No symptoms selected' : n + ' symptom' + (n > 1 ? 's' : '') + ' selected';
+  }
+
+  // ── File upload ───────────────────────────────────────────────
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+
+  function handleFileSelect(input) {
+    if (input.files[0]) setFile(input.files[0]);
+  }
+
+  function setFile(file) {
+    const maxMB = 10;
+    if (file.size > maxMB * 1024 * 1024) {
+      alert('File too large. Maximum size is 10 MB.'); return;
+    }
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = (file.size / (1024*1024)).toFixed(2) + ' MB';
+    document.getElementById('uploadZone').classList.add('hidden');
+    document.getElementById('filePreview').classList.remove('hidden');
+  }
+
+  function removeFile() {
+    document.getElementById('mri_file').value = '';
+    document.getElementById('uploadZone').classList.remove('hidden');
+    document.getElementById('filePreview').classList.add('hidden');
+  }
+
+  function handleSubmit() {
+    document.getElementById('submitSpinner').classList.remove('hidden');
+    document.getElementById('submitBtn').disabled = true;
+  }
+</script>
+{% endblock %}

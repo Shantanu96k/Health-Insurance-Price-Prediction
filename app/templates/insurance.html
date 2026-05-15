@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Insurance Plans{% endblock %}
+
+{% block content %}
+<div class="insurance-page">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Insurance Recommendation</h1>
+      <p class="page-subtitle">
+        Plans matched to your <strong>{{ risk_level | default('assessed') }} risk level</strong>
+      </p>
+    </div>
+    <a href="/patient/dashboard" class="btn-outline">&larr; Back to Dashboard</a>
+  </div>
+
+  <!-- Risk context banner -->
+  <div class="risk-banner risk-banner--{{ risk_level | default('low') }}">
+    <div class="risk-banner-icon">
+      {% if risk_level == 'high' %}⚠{% elif risk_level == 'medium' %}◈{% else %}✓{% endif %}
+    </div>
+    <div class="risk-banner-text">
+      <strong>Your risk level: {{ risk_level | title }}</strong>
+      <span>
+        {% if risk_level == 'high' %}
+          You have a high risk profile. We recommend a comprehensive plan with critical illness cover.
+        {% elif risk_level == 'medium' %}
+          You have a moderate risk profile. A standard plan with diagnostic cover suits you best.
+        {% else %}
+          Your risk profile is low. A basic plan is sufficient for your current health needs.
+        {% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- ── PLAN CARDS ─────────────────────────────────────── -->
+  <div class="plans-grid">
+
+    <!-- Basic Plan -->
+    <div class="plan-card {% if recommended_plan == 'basic' %}plan-card--recommended{% endif %}">
+      {% if recommended_plan == 'basic' %}
+      <div class="plan-badge">Recommended for You</div>
+      {% endif %}
+      <div class="plan-header plan-header--basic">
+        <div class="plan-icon">🌱</div>
+        <div>
+          <h3 class="plan-name">BasicCare Shield</h3>
+          <p class="plan-type">Basic Health Cover</p>
+        </div>
+      </div>
+      <div class="plan-price">
+        <span class="price-amount">₹499</span>
+        <span class="price-per">/ month</span>
+      </div>
+      <div class="plan-tagline">Best for healthy individuals with low risk</div>
+      <ul class="plan-features">
+        <li class="plan-feat plan-feat--ok">OPD consultations up to ₹5,000/year</li>
+        <li class="plan-feat plan-feat--ok">Hospitalisation up to ₹1 Lakh</li>
+        <li class="plan-feat plan-feat--ok">Annual preventive health checkup</li>
+        <li class="plan-feat plan-feat--ok">Ambulance cover up to ₹2,000</li>
+        <li class="plan-feat plan-feat--no">Specialist consultations</li>
+        <li class="plan-feat plan-feat--no">Critical illness cover</li>
+        <li class="plan-feat plan-feat--no">Cashless hospital network</li>
+      </ul>
+      <div class="plan-cta">
+        <a href="#" class="btn-outline btn-full plan-btn"
+           onclick="selectPlan('BasicCare Shield', '₹499/month', '{{ patient_id }}')">
+          Select Plan
+        </a>
+      </div>
+    </div>
+
+    <!-- Standard Plan -->
+    <div class="plan-card {% if recommended_plan == 'standard' %}plan-card--recommended{% endif %}">
+      {% if recommended_plan == 'standard' %}
+      <div class="plan-badge">Recommended for You</div>
+      {% endif %}
+      <div class="plan-header plan-header--standard">
+        <div class="plan-icon">💼</div>
+        <div>
+          <h3 class="plan-name">MedPlus Standard</h3>
+          <p class="plan-type">Standard Health Cover</p>
+        </div>
+      </div>
+      <div class="plan-price">
+        <span class="price-amount">₹1,199</span>
+        <span class="price-per">/ month</span>
+      </div>
+      <div class="plan-tagline">Balanced cover for moderate risk individuals</div>
+      <ul class="plan-features">
+        <li class="plan-feat plan-feat--ok">OPD + specialist consultations</li>
+        <li class="plan-feat plan-feat--ok">Hospitalisation up to ₹3 Lakh</li>
+        <li class="plan-feat plan-feat--ok">Diagnostic tests covered</li>
+        <li class="plan-feat plan-feat--ok">Cashless at 500+ hospitals</li>
+        <li class="plan-feat plan-feat--ok">Ambulance cover up to ₹5,000</li>
+        <li class="plan-feat plan-feat--ok">Pre & post hospitalisation (30/60 days)</li>
+        <li class="plan-feat plan-feat--no">Critical illness cover</li>
+      </ul>
+      <div class="plan-cta">
+        <a href="#" class="btn-outline btn-full plan-btn"
+           onclick="selectPlan('MedPlus Standard', '₹1,199/month', '{{ patient_id }}')">
+          Select Plan
+        </a>
+      </div>
+    </div>
+
+    <!-- Premium Plan -->
+    <div class="plan-card {% if recommended_plan == 'premium' %}plan-card--recommended{% endif %}">
+      {% if recommended_plan == 'premium' %}
+      <div class="plan-badge">Recommended for You</div>
+      {% endif %}
+      <div class="plan-header plan-header--premium">
+        <div class="plan-icon">🛡️</div>
+        <div>
+          <h3 class="plan-name">SecureHealth Premium</h3>
+          <p class="plan-type">Comprehensive Cover</p>
+        </div>
+      </div>
+      <div class="plan-price">
+        <span class="price-amount">₹2,499</span>
+        <span class="price-per">/ month</span>
+      </div>
+      <div class="plan-tagline">Full protection for high risk individuals</div>
+      <ul class="plan-features">
+        <li class="plan-feat plan-feat--ok">Unlimited OPD visits</li>
+        <li class="plan-feat plan-feat--ok">Hospitalisation up to ₹10 Lakh</li>
+        <li class="plan-feat plan-feat--ok">Critical illness (Heart, Cancer, Kidney)</li>
+        <li class="plan-feat plan-feat--ok">Cashless at 1,000+ hospitals</li>
+        <li class="plan-feat plan-feat--ok">Ambulance + ICU coverage</li>
+        <li class="plan-feat plan-feat--ok">Mental health consultations</li>
+        <li class="plan-feat plan-feat--ok">International emergency cover</li>
+      </ul>
+      <div class="plan-cta">
+        <a href="#" class="btn-outline btn-full plan-btn"
+           onclick="selectPlan('SecureHealth Premium', '₹2,499/month', '{{ patient_id }}')">
+          Select Plan
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Why this recommendation ────────────────────────── -->
+  <div class="insurance-why">
+    <h3>Why we recommend this plan</h3>
+    <p>{{ recommendation_reason | default('Based on your health assessment, we have matched you with the most suitable plan.') }}</p>
+    <div class="why-factors">
+      <div class="why-factor">
+        <span class="wf-icon">🩺</span>
+        <div>
+          <strong>Predicted condition</strong>
+          <span>{{ predicted_disease | default('—') }}</span>
+        </div>
+      </div>
+      <div class="why-factor">
+        <span class="wf-icon">📊</span>
+        <div>
+          <strong>Risk level</strong>
+          <span>{{ risk_level | default('—') | title }}</span>
+        </div>
+      </div>
+      <div class="why-factor">
+        <span class="wf-icon">💯</span>
+        <div>
+          <strong>Confidence score</strong>
+          <span>{{ confidence_score | default('—') }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="insurance-disclaimer">
+    <span class="disc-icon">⚕</span>
+    <p>
+      Insurance plans shown are illustrative examples for this college project demo.
+      In a real system, these would link to actual insurer APIs.
+      Always consult a licensed insurance advisor before purchasing a plan.
+    </p>
+  </div>
+
+  <!-- Plan selected modal -->
+  <div class="modal-overlay hidden" id="planModal">
+    <div class="modal-box">
+      <div class="modal-icon">✓</div>
+      <h3 id="modalPlanName">Plan Selected</h3>
+      <p id="modalPlanPrice"></p>
+      <p>Your selection has been saved. A representative will contact you within 2 business days.</p>
+      <button class="btn-primary" onclick="document.getElementById('planModal').classList.add('hidden')">
+        Done
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function selectPlan(name, price, patientId) {
+    document.getElementById('modalPlanName').textContent = name + ' — Selected';
+    document.getElementById('modalPlanPrice').textContent = price;
+    document.getElementById('planModal').classList.remove('hidden');
+
+    // Save to backend via fetch
+    fetch('/insurance/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patient_id: patientId, plan_name: name, plan_price: price })
+    });
+  }
+</script>
+{% endblock %}
