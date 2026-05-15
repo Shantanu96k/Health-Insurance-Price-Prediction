@@ -1,12 +1,20 @@
 # main.py
 """
-MedPredict — FastAPI Entry Point
-=================================
+MedPredict — FastAPI Entry Point (Enhanced)
+=============================================
 Run with:
     uvicorn main:app --reload
 
-Auto-generated API docs:
-    http://localhost:8000/docs      ← Use this in your viva demo!
+API docs:
+    http://localhost:8000/docs   ← Show in viva demo!
+
+New routes added:
+    /price/form       — Insurance price calculator
+    /price/calculate  — Run regression model
+    /price/result     — Show price estimate
+    /admin/           — Admin dashboard
+    /admin/patients   — All patients
+    /admin/flagged    — Flagged MRI cases
 """
 
 from fastapi import FastAPI, Request
@@ -18,45 +26,53 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.routes import auth, patient, insurance
 
-# ── Create app ────────────────────────────────────────────────────────
+from app.routes import insurance_price, admin as admin_routes
+
 app = FastAPI(
     title="MedPredict",
-    description="AI-powered medical history prediction and insurance recommendation system.",
-    version="1.0.0",
-    docs_url="/docs",      # Swagger UI — show in viva
+    description=(
+        "AI-powered medical history prediction and insurance recommendation system. "
+        "Features: Disease prediction (RandomForest), MRI lie detection, "
+        "Insurance price prediction (GradientBoosting), Gemini AI suggestions."
+    ),
+    version="2.0.0",
+    docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# ── Session middleware (required for request.session) ─────────────────
-# SECRET_KEY is read from .env file via settings
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
-# ── Static files (CSS, JS) ────────────────────────────────────────────
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ── Jinja2 templates ──────────────────────────────────────────────────
 templates = Jinja2Templates(directory="app/templates")
 
-# ── Register route modules ────────────────────────────────────────────
 app.include_router(auth.router,      prefix="/auth",      tags=["Authentication"])
 app.include_router(patient.router,   prefix="/patient",   tags=["Patient"])
 app.include_router(insurance.router, prefix="/insurance", tags=["Insurance"])
 
+app.include_router(insurance_price.router, prefix="/price", tags=["Insurance Price Prediction"])
+app.include_router(admin_routes.router,    prefix="/admin", tags=["Admin"])
 
-# ── Root redirect ─────────────────────────────────────────────────────
+
 @app.get("/", include_in_schema=False)
 async def root(request: Request):
-    """
-    If logged in → go to dashboard.
-    If not       → go to login.
-    """
     if request.session.get("patient_id"):
         return RedirectResponse("/patient/dashboard", status_code=302)
     return RedirectResponse("/auth/login", status_code=302)
 
 
-# ── Health check (useful for deployment) ──────────────────────────────
 @app.get("/health", tags=["System"])
 async def health_check():
-    """Simple ping endpoint to check if the server is running."""
-    return {"status": "ok", "app": "MedPredict", "version": "1.0.0"}
+    return {
+        "status": "ok",
+        "app": "MedPredict",
+        "version": "2.0.0",
+        "features": [
+            "disease-prediction",
+            "mri-validation",
+            "insurance-plans",
+            "insurance-price-prediction",
+            "gemini-ai-suggestions",
+            "admin-dashboard",
+        ]
+    }

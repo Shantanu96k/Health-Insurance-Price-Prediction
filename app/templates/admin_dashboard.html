@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-subtitle">System overview — MedPredict health prediction platform</p>
+    </div>
+    <a href="/admin/logout" class="btn-outline" style="color: var(--clr-danger); border-color: var(--clr-danger);">
+      Logout Admin
+    </a>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="summary-strip" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="summary-card">
+      <div class="sumcard-label">Total Patients</div>
+      <div class="sumcard-value">{{ total_patients }}</div>
+      <div class="sumcard-sub">Registered accounts</div>
+    </div>
+    <div class="summary-card">
+      <div class="sumcard-label">Total Predictions</div>
+      <div class="sumcard-value">{{ total_preds }}</div>
+      <div class="sumcard-sub">Health assessments run</div>
+    </div>
+    <div class="summary-card" style="border-color: {% if flagged_count > 0 %}var(--clr-warning){% else %}var(--clr-border){% endif %};">
+      <div class="sumcard-label">Flagged Cases</div>
+      <div class="sumcard-value" style="color: {% if flagged_count > 0 %}var(--clr-warning){% else %}var(--clr-success){% endif %};">
+        {{ flagged_count }}
+      </div>
+      <div class="sumcard-sub">MRI inconsistencies</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-col">
+
+      <!-- Risk distribution -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">📊</span>
+          <div><h3>Risk Distribution</h3><p>Across all predictions</p></div>
+        </div>
+        {% set total_risk = risk_dist.low + risk_dist.medium + risk_dist.high %}
+        {% if total_risk > 0 %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          {% for level, color in [('low', 'var(--clr-success)'), ('medium', 'var(--clr-warning)'), ('high', 'var(--clr-danger)')] %}
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 13px; font-weight: 700; text-transform: capitalize;">{{ level }} risk</span>
+              <span style="font-size: 13px; color: var(--clr-text-3);">
+                {{ risk_dist[level] }} / {{ total_risk }}
+              </span>
+            </div>
+            <div style="height: 8px; background: var(--clr-surface-2); border-radius: 6px; overflow: hidden;">
+              <div style="height: 100%; border-radius: 6px; background: {{ color }}; width: {{ (risk_dist[level] / total_risk * 100)|int }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--clr-text-3); font-size: 13px;">No predictions yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Disease distribution -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🩺</span>
+          <div><h3>Disease Distribution</h3><p>Most common predicted conditions</p></div>
+        </div>
+        {% if disease_counts %}
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          {% for disease, count in disease_counts.items() | sort(attribute=1, reverse=True) %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--clr-surface-2); border-radius: 8px;">
+            <span style="font-size: 13px; color: var(--clr-text);">{{ disease }}</span>
+            <span style="font-size: 12px; font-weight: 700; padding: 2px 10px; background: var(--clr-primary-light); color: var(--clr-primary); border-radius: 20px;">{{ count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--clr-text-3); font-size: 13px;">No predictions yet.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="dash-col">
+
+      <!-- Quick links -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🔗</span>
+          <div><h3>Quick Actions</h3><p>Admin management links</p></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a href="/admin/patients" class="btn-outline btn-full">👥 View All Patients</a>
+          <a href="/admin/flagged" class="btn-outline btn-full" {% if flagged_count > 0 %}style="border-color: var(--clr-warning); color: var(--clr-warning);"{% endif %}>
+            ⚠ Flagged Cases ({{ flagged_count }})
+          </a>
+          <a href="/docs" class="btn-outline btn-full" target="_blank">📋 API Documentation</a>
+        </div>
+      </div>
+
+      <!-- Recent predictions -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🕐</span>
+          <div><h3>Recent Assessments</h3><p>Latest 10 predictions</p></div>
+        </div>
+        {% if recent_preds %}
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          {% for pred in recent_preds %}
+          <div style="padding: 10px 12px; border: 1px solid var(--clr-border); border-radius: 8px;{% if pred.honesty_flag == 'review_needed' %} background: var(--clr-warning-light); border-color: var(--clr-warning);{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--clr-text);">
+                  {{ pred.predicted_disease }}
+                </div>
+                <div style="font-size: 11px; color: var(--clr-text-3); margin-top: 2px;">
+                  Patient: {{ pred.patient_id[:8] }}...
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span class="risk-badge risk-{{ pred.risk_level }}" style="font-size: 11px; padding: 2px 8px;">
+                  {{ pred.risk_level }}
+                </span>
+                {% if pred.honesty_flag == 'review_needed' %}
+                <div style="font-size: 10px; color: var(--clr-warning); font-weight: 700; margin-top: 2px;">⚠ FLAGGED</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--clr-text-3); font-size: 13px;">No predictions yet.</p>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

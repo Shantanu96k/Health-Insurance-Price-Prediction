@@ -27,7 +27,10 @@
         Dashboard
       </a>
       <a href="/insurance/plans" class="nav-link {% if request.url.path == '/insurance/plans' %}active{% endif %}">
-        Insurance
+        Insurance Plans
+      </a>
+      <a href="/price/form" class="nav-link {% if request.url.path.startswith('/price') %}active{% endif %}">
+        💰 Price Calc
       </a>
       <div class="nav-divider"></div>
       <span class="nav-user">{{ request.session.get('patient_name', 'Patient') }}</span>
@@ -37,6 +40,7 @@
     <div class="nav-links">
       <a href="/auth/login" class="nav-link">Login</a>
       <a href="/auth/register" class="btn-primary-sm">Register</a>
+      <a href="/admin/login" class="btn-ghost-sm" style="font-size: 12px;">Admin</a>
     </div>
     {% endif %}
   </nav>
@@ -65,7 +69,7 @@
   <footer class="footer">
     <div class="footer-inner">
       <span class="brand-icon">✦</span>
-      <span>MedPredict — AI Health Intelligence &nbsp;|&nbsp; College Project</span>
+      <span>MedPredict v2.0 — AI Health Intelligence &nbsp;|&nbsp; MCA Major Project</span>
       <span class="footer-note">Not a substitute for professional medical advice.</span>
     </div>
   </footer>

@@ -20,3 +20,7 @@ lightgbm
 
 python-jose
 itsdangerous
+
+Pillow                   
+google-generativeai      
+reportlab                

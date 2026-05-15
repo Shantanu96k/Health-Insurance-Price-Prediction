@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Your Insurance Premium Estimate{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Premium Estimate</h1>
+      <p class="page-subtitle">Calculated by our Gradient Boosting ML model</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <a href="/price/form" class="btn-outline">Recalculate</a>
+      <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Big price display -->
+  <div style="background: linear-gradient(135deg, #0f2e6e, #1a56db); border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 28px; color: #fff;">
+    <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 12px;">
+      Estimated Annual Premium
+    </div>
+    <div style="font-family: var(--font-display); font-size: 56px; font-weight: 400; margin-bottom: 8px;">
+      ₹{{ "{:,}".format(result.annual_premium) }}
+    </div>
+    <div style="font-size: 18px; opacity: 0.85; margin-bottom: 20px;">
+      ₹{{ "{:,}".format(result.monthly_premium) }} per month
+    </div>
+    <div style="display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; {% if result.premium_band == 'budget' %}background: rgba(14,159,110,0.25); color: #6ee7b7;{% elif result.premium_band == 'standard' %}background: rgba(255,255,255,0.15); color: #fff;{% else %}background: rgba(224,36,36,0.25); color: #fca5a5;{% endif %}">
+      {{ result.premium_band | title }} Tier
+    </div>
+  </div>
+
+  <!-- AI Explanation -->
+  {% if result.explanation %}
+  <div style="background: var(--clr-info-light); border: 1px solid var(--clr-info); border-radius: 12px; padding: 20px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start;">
+    <span style="font-size: 24px;">🤖</span>
+    <div>
+      <div style="font-size: 12px; font-weight: 700; color: var(--clr-info); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+        AI Explanation (Gemini)
+      </div>
+      <p style="font-size: 14px; color: var(--clr-text); line-height: 1.6; margin: 0;">
+        {{ result.explanation }}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="dash-grid">
+
+    <!-- LEFT: Premium breakdown -->
+    <div class="dash-col">
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">📊</span>
+          <div>
+            <h3>Premium Breakdown</h3>
+            <p>How each factor contributes to your price</p>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% set total = result.annual_premium %}
+          {% set items = [
+            ('Base premium', breakdown.base, '🏠'),
+            ('Age factor', breakdown.age, '📅'),
+            ('BMI factor', breakdown.bmi, '⚖️'),
+            ('Smoker surcharge', breakdown.smoker, '🚬'),
+            ('Medical conditions', breakdown.conditions, '🏥'),
+            ('Lifestyle factor', breakdown.lifestyle, '🏃'),
+            ('Dependents', breakdown.dependents, '👨‍👩‍👧'),
+          ] %}
+          {% for label, amount, icon in items %}
+          {% if amount > 0 %}
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 16px; width: 24px; text-align: center;">{{ icon }}</span>
+            <div style="flex: 1;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 13px; color: var(--clr-text-2);">{{ label }}</span>
+                <span style="font-size: 13px; font-weight: 700; color: var(--clr-text);">
+                  ₹{{ "{:,}".format(amount) }}
+                </span>
+              </div>
+              <div style="height: 6px; background: var(--clr-surface-2); border-radius: 6px; overflow: hidden;">
+                <div style="height: 100%; border-radius: 6px; background: var(--clr-primary); width: {{ [(amount / total * 100)|int, 100]|min }}%; transition: width 1s ease;"></div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--clr-border); display: flex; justify-content: space-between;">
+          <span style="font-size: 14px; font-weight: 700;">Total Annual</span>
+          <span style="font-size: 18px; font-weight: 700; color: var(--clr-primary);">
+            ₹{{ "{:,}".format(result.annual_premium) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Compare with market -->
+      <div class="dash-card" style="background: var(--clr-surface-2);">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">📈</span>
+          <div><h3>Market Comparison</h3><p>How your premium compares to averages</p></div>
+        </div>
+        {% set avg_india = 12000 %}
+        {% set pct = ((result.annual_premium - avg_india) / avg_india * 100) | int %}
+        <div style="text-align: center; padding: 10px 0;">
+          <div style="font-size: 13px; color: var(--clr-text-3); margin-bottom: 8px;">Indian average: ₹12,000/year</div>
+          <div style="font-size: 22px; font-weight: 700; color: {% if pct > 0 %}var(--clr-danger){% else %}var(--clr-success){% endif %};">
+            {% if pct > 0 %}+{{ pct }}%{% else %}{{ pct }}%{% endif %} vs average
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Risk factors + actions -->
+    <div class="dash-col">
+
+      {% if result.risk_factors %}
+      <div class="dash-card dash-card--alert">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">⚠️</span>
+          <div><h3>Factors Raising Your Premium</h3><p>Addressing these can reduce your cost</p></div>
+        </div>
+        <ul class="suggestion-list">
+          {% for factor in result.risk_factors %}
+          <li class="suggestion-item suggestion-item--warn">
+            <span class="sug-icon">⚠</span>
+            <span>{{ factor }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Recommended plans based on price band -->
+      <div class="dash-card dash-card--cta">
+        <div class="cta-icon">🛡️</div>
+        <h3>View Matching Plans</h3>
+        <p>See insurance plans that match your calculated premium range of 
+           <strong>₹{{ "{:,}".format(result.monthly_premium) }}/month</strong>.</p>
+        <a href="/insurance/plans" class="btn-primary btn-full">View Insurance Plans →</a>
+      </div>
+
+      <!-- PDF download CTA -->
+      <div class="dash-card" style="border: 1px solid var(--clr-border); text-align: center; padding: 24px;">
+        <div style="font-size: 32px; margin-bottom: 12px;">📄</div>
+        <h3 style="font-family: var(--font-display); font-size: 17px; margin-bottom: 8px;">Download Report</h3>
+        <p style="font-size: 13px; color: var(--clr-text-2); margin-bottom: 16px;">
+          Save your premium estimate as a PDF to share with your insurance advisor.
+        </p>
+        <button class="btn-outline btn-full" onclick="window.print()">
+          🖨️ Print / Save as PDF
+        </button>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="dash-card--disclaimer dash-card" style="border: none;">
+        <div class="disclaimer-icon">⚕</div>
+        <p>
+          <strong>Disclaimer:</strong> This premium estimate is generated by a machine learning model
+          trained on synthetic data. Actual insurance premiums vary by insurer, policy terms, and
+          individual medical underwriting. Consult a licensed insurance advisor for accurate quotes.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

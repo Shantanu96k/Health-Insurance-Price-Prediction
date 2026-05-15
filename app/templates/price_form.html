@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% block title %}Insurance Price Calculator{% endblock %}
+
+{% block content %}
+<div class="form-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Insurance Price Calculator</h1>
+      <p class="page-subtitle">Get an estimated annual health insurance premium based on your profile.</p>
+    </div>
+    <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
+  </div>
+
+  <!-- Info banner -->
+  <div class="info-note" style="margin-bottom: 24px;">
+    <span class="info-icon">🤖</span>
+    <span>Our <strong>Gradient Boosting ML model</strong> predicts your premium based on age, BMI, 
+    lifestyle, and pre-existing conditions. Results are estimates for educational purposes.</span>
+  </div>
+
+  <form action="/price/calculate" method="POST" id="priceForm">
+    <input type="hidden" name="patient_id" value="{{ patient_id }}" />
+
+    <!-- Section 1: Demographics -->
+    <div class="form-card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-icon">👤</span>
+        <div>
+          <h3>Personal Information</h3>
+          <p>Basic demographic details used in the pricing model.</p>
+        </div>
+      </div>
+
+      <div class="lifestyle-grid">
+
+        <!-- Age + BMI side by side -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="field-group">
+            <label class="field-label">Age</label>
+            <input type="number" name="age" class="field-input" 
+                   min="18" max="80" placeholder="e.g. 32" 
+                   value="{{ patient_age }}" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">
+              BMI 
+              <span style="font-weight:400; font-size: 12px; color: var(--clr-text-3);">
+                (weight kg ÷ height m²)
+              </span>
+            </label>
+            <input type="number" name="bmi" class="field-input" 
+                   min="10" max="60" step="0.1" placeholder="e.g. 24.5" required />
+          </div>
+        </div>
+
+        <!-- Sex -->
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">⚧</span>
+            <div>
+              <strong>Sex</strong>
+              <small>Biological sex for risk calculation</small>
+            </div>
+          </div>
+          <div class="toggle-group">
+            <label class="toggle-opt">
+              <input type="radio" name="sex" value="male" 
+                     {% if patient_sex == 'male' %}checked{% endif %} required />
+              <span class="toggle-box">Male</span>
+            </label>
+            <label class="toggle-opt">
+              <input type="radio" name="sex" value="female"
+                     {% if patient_sex == 'female' %}checked{% endif %} />
+              <span class="toggle-box">Female</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Children -->
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">👨‍👩‍👧</span>
+            <div>
+              <strong>Number of dependents</strong>
+              <small>Children or family members on your plan</small>
+            </div>
+          </div>
+          <div class="select-group">
+            {% for n in [0, 1, 2, 3, 4] %}
+            <label class="select-opt">
+              <input type="radio" name="children" value="{{ n }}" 
+                     {% if n == 0 %}checked{% endif %} required />
+              <span class="select-box">
+                <span class="sel-title">{{ n }}</span>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Region -->
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">🗺️</span>
+            <div>
+              <strong>Region</strong>
+              <small>Your location in India</small>
+            </div>
+          </div>
+          <div class="select-group">
+            {% for r in ['north', 'south', 'east', 'west'] %}
+            <label class="select-opt">
+              <input type="radio" name="region" value="{{ r }}" required />
+              <span class="select-box">
+                <span class="sel-title">{{ r | title }}</span>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 2: Lifestyle -->
+    <div class="form-card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-icon">🏃</span>
+        <div>
+          <h3>Lifestyle Factors</h3>
+          <p>These significantly affect your premium calculation.</p>
+        </div>
+      </div>
+      <div class="lifestyle-grid">
+
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">🚬</span>
+            <div><strong>Smoker?</strong><small>Tobacco use raises premiums significantly</small></div>
+          </div>
+          <div class="toggle-group">
+            <label class="toggle-opt">
+              <input type="radio" name="smoker" value="1" required />
+              <span class="toggle-box">Yes</span>
+            </label>
+            <label class="toggle-opt">
+              <input type="radio" name="smoker" value="0" />
+              <span class="toggle-box">No</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="lifestyle-row lifestyle-row--stack">
+          <div class="lifestyle-label">
+            <span class="lf-icon">💪</span>
+            <div><strong>Exercise frequency</strong><small>Weekly physical activity</small></div>
+          </div>
+          <div class="select-group">
+            <label class="select-opt">
+              <input type="radio" name="exercise_frequency" value="never" required />
+              <span class="select-box"><span class="sel-title">Never</span></span>
+            </label>
+            <label class="select-opt">
+              <input type="radio" name="exercise_frequency" value="sometimes" />
+              <span class="select-box"><span class="sel-title">Sometimes</span></span>
+            </label>
+            <label class="select-opt">
+              <input type="radio" name="exercise_frequency" value="regular" />
+              <span class="select-box"><span class="sel-title">Regular</span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="lifestyle-row lifestyle-row--stack">
+          <div class="lifestyle-label">
+            <span class="lf-icon">🥗</span>
+            <div><strong>Diet quality</strong><small>Your daily eating habits</small></div>
+          </div>
+          <div class="select-group">
+            <label class="select-opt">
+              <input type="radio" name="diet_quality" value="poor" required />
+              <span class="select-box"><span class="sel-title">Poor</span></span>
+            </label>
+            <label class="select-opt">
+              <input type="radio" name="diet_quality" value="average" />
+              <span class="select-box"><span class="sel-title">Average</span></span>
+            </label>
+            <label class="select-opt">
+              <input type="radio" name="diet_quality" value="good" />
+              <span class="select-box"><span class="sel-title">Good</span></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 3: Pre-existing conditions -->
+    <div class="form-card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-icon">🩺</span>
+        <div>
+          <h3>Pre-existing Conditions</h3>
+          <p>Diagnosed conditions that affect your insurance eligibility and price.</p>
+        </div>
+      </div>
+      <div class="fam-grid">
+
+        <div class="fam-card">
+          <div class="fam-icon">🍬</div>
+          <div class="fam-info">
+            <strong>Diabetes (Type 1 or 2)</strong>
+            <small>Diagnosed by a doctor</small>
+          </div>
+          <div class="toggle-group">
+            <label class="toggle-opt">
+              <input type="radio" name="has_diabetes" value="1" required />
+              <span class="toggle-box">Yes</span>
+            </label>
+            <label class="toggle-opt">
+              <input type="radio" name="has_diabetes" value="0" />
+              <span class="toggle-box">No</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="fam-card">
+          <div class="fam-icon">🫀</div>
+          <div class="fam-info">
+            <strong>Heart Disease</strong>
+            <small>Any diagnosed cardiac condition</small>
+          </div>
+          <div class="toggle-group">
+            <label class="toggle-opt">
+              <input type="radio" name="has_heart" value="1" required />
+              <span class="toggle-box">Yes</span>
+            </label>
+            <label class="toggle-opt">
+              <input type="radio" name="has_heart" value="0" />
+              <span class="toggle-box">No</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="fam-card">
+          <div class="fam-icon">🩸</div>
+          <div class="fam-info">
+            <strong>High Blood Pressure</strong>
+            <small>Hypertension (BP above 140/90)</small>
+          </div>
+          <div class="toggle-group">
+            <label class="toggle-opt">
+              <input type="radio" name="has_bp" value="1" required />
+              <span class="toggle-box">Yes</span>
+            </label>
+            <label class="toggle-opt">
+              <input type="radio" name="has_bp" value="0" />
+              <span class="toggle-box">No</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BMI Calculator helper -->
+    <div class="form-card" style="margin-bottom: 20px; background: var(--clr-primary-light); border-color: var(--clr-primary);">
+      <div class="card-header" style="border-bottom-color: rgba(26,86,219,0.2);">
+        <span class="card-icon">🧮</span>
+        <div>
+          <h3 style="color: var(--clr-primary);">BMI Calculator</h3>
+          <p>Don't know your BMI? Calculate it here.</p>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+        <div class="field-group">
+          <label class="field-label">Height (cm)</label>
+          <input type="number" id="calc_height" class="field-input" placeholder="e.g. 170" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Weight (kg)</label>
+          <input type="number" id="calc_weight" class="field-input" placeholder="e.g. 70" />
+        </div>
+        <button type="button" class="btn-outline" onclick="calcBMI()" style="height: 42px;">
+          Calculate
+        </button>
+      </div>
+      <div id="bmi_result" style="margin-top: 12px; font-size: 14px; color: var(--clr-primary); display: none;">
+        Your BMI: <strong id="bmi_val"></strong> — <span id="bmi_category"></span>
+        <button type="button" onclick="fillBMI()" style="margin-left: 12px; font-size: 12px; color: var(--clr-primary); text-decoration: underline; background: none; border: none; cursor: pointer;">
+          Use this value →
+        </button>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="form-nav">
+      <a href="/patient/dashboard" class="btn-outline">&larr; Back</a>
+      <button type="submit" class="btn-submit">
+        <span class="submit-icon">💰</span>
+        <span class="btn-text">Calculate My Premium</span>
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let calcBMIValue = null;
+
+function calcBMI() {
+  const h = parseFloat(document.getElementById('calc_height').value);
+  const w = parseFloat(document.getElementById('calc_weight').value);
+  if (!h || !w || h < 50 || w < 10) { alert('Please enter valid height and weight.'); return; }
+  const bmi = (w / ((h/100) ** 2)).toFixed(1);
+  calcBMIValue = bmi;
+  const div = document.getElementById('bmi_result');
+  document.getElementById('bmi_val').textContent = bmi;
+  let cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal weight' : bmi < 30 ? 'Overweight' : 'Obese';
+  document.getElementById('bmi_category').textContent = cat;
+  div.style.display = 'block';
+}
+
+function fillBMI() {
+  if (calcBMIValue) {
+    document.querySelector('input[name="bmi"]').value = calcBMIValue;
+  }
+}
+</script>
+{% endblock %}
