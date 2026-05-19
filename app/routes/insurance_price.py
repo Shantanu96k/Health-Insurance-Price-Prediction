@@ -132,13 +132,12 @@ async def calculate_price(
         # Table may not exist yet — don't block the flow
         print(f"DB save skipped: {e}")
 
-    # Store in session for the result page
-    request.session["price_result"] = {
-        **price_result,
-        "explanation": explanation,
-        "form_data":   form_data,
-        "record_id":   record_id,
-    }
+    # Bug Fix: Store only minimal data in session to prevent 4KB cookie overflow.
+    # The record_id is used to fetch the full result from Supabase on the result page.
+    request.session["price_result_id"]    = record_id
+    request.session["price_annual"]       = price_result["annual_premium"]
+    request.session["price_monthly"]      = price_result["monthly_premium"]
+    request.session["price_band"]         = price_result["premium_band"]
 
     return RedirectResponse("/price/result", status_code=302)
 
@@ -152,10 +151,55 @@ async def price_result(request: Request):
     if not patient_id:
         return RedirectResponse("/auth/login", status_code=302)
 
-    result = request.session.get("price_result")
-    if not result:
+    # Bug Fix: Reconstruct result from individual session keys (no overflow)
+    record_id    = request.session.get("price_result_id")
+    annual       = request.session.get("price_annual")
+    monthly      = request.session.get("price_monthly")
+    band         = request.session.get("price_band")
+
+    if not record_id or annual is None:
         add_flash(request, "info", "Please fill the insurance calculator form first.")
         return RedirectResponse("/price/form", status_code=302)
+
+    # Fetch full record from Supabase (avoids session size issue)
+    result    = {}
+    breakdown = {}
+    form_data = {}
+    risk_factors = []
+    explanation  = ""
+    try:
+        res = supabase.table("insurance_price_predictions") \
+            .select("*").eq("id", record_id).single().execute()
+        if res.data:
+            row = res.data
+            form_data    = {
+                "age": row.get("age"), "bmi": row.get("bmi"),
+                "children": row.get("children"), "region": row.get("region"),
+                "sex": row.get("sex"), "smoker": row.get("smoker"),
+                "has_diabetes": row.get("has_diabetes"),
+                "has_heart": row.get("has_heart"), "has_bp": row.get("has_bp"),
+            }
+            # Re-run prediction to get breakdown & risk_factors (fast, no DB)
+            from app.models.insurance_price_model import predict_insurance_price
+            fresh = predict_insurance_price(form_data)
+            breakdown    = fresh.get("breakdown", {})
+            risk_factors = fresh.get("risk_factors", [])
+            explanation  = get_insurance_ai_explanation(
+                annual, risk_factors, "General Health Assessment"
+            )
+    except Exception:
+        pass
+
+    result = {
+        "annual_premium":  annual,
+        "monthly_premium": monthly,
+        "premium_band":    band,
+        "risk_factors":    risk_factors,
+        "explanation":     explanation,
+        "form_data":       form_data,
+        "record_id":       record_id,
+        "breakdown":       breakdown,
+    }
 
     messages = request.session.pop("messages", [])
     return templates.TemplateResponse("price_result.html", {
@@ -163,5 +207,5 @@ async def price_result(request: Request):
         "messages":   messages,
         "patient_id": patient_id,
         "result":     result,
-        "breakdown":  result.get("breakdown", {}),
+        "breakdown":  breakdown,
     })

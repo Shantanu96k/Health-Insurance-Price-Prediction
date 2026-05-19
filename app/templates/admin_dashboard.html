@@ -7,14 +7,14 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Admin Dashboard</h1>
-      <p class="page-subtitle">System overview — MedPredict health prediction platform</p>
+      <p class="page-subtitle">System analytics — MedPredict health prediction platform</p>
     </div>
-    <a href="/admin/logout" class="btn-outline" style="color: var(--clr-danger); border-color: var(--clr-danger);">
+    <a href="/admin/logout" class="btn-outline" style="color:var(--clr-danger); border-color:var(--clr-danger);">
       Logout Admin
     </a>
   </div>
 
-  <!-- Stats strip -->
+  <!-- ── STATS STRIP ──────────────────────────────────────── -->
   <div class="summary-strip" style="grid-template-columns: repeat(3, 1fr);">
     <div class="summary-card">
       <div class="sumcard-label">Total Patients</div>
@@ -35,59 +35,51 @@
     </div>
   </div>
 
-  <div class="dash-grid">
-    <div class="dash-col">
+  <!-- ── ANALYTICS CHARTS ─────────────────────────────────── -->
+  <div class="admin-charts-grid">
 
-      <!-- Risk distribution -->
-      <div class="dash-card">
-        <div class="dash-card-header">
-          <span class="dash-card-icon">📊</span>
-          <div><h3>Risk Distribution</h3><p>Across all predictions</p></div>
-        </div>
-        {% set total_risk = risk_dist.low + risk_dist.medium + risk_dist.high %}
-        {% if total_risk > 0 %}
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          {% for level, color in [('low', 'var(--clr-success)'), ('medium', 'var(--clr-warning)'), ('high', 'var(--clr-danger)')] %}
-          <div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span style="font-size: 13px; font-weight: 700; text-transform: capitalize;">{{ level }} risk</span>
-              <span style="font-size: 13px; color: var(--clr-text-3);">
-                {{ risk_dist[level] }} / {{ total_risk }}
-              </span>
-            </div>
-            <div style="height: 8px; background: var(--clr-surface-2); border-radius: 6px; overflow: hidden;">
-              <div style="height: 100%; border-radius: 6px; background: {{ color }}; width: {{ (risk_dist[level] / total_risk * 100)|int }}%;"></div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p style="color: var(--clr-text-3); font-size: 13px;">No predictions yet.</p>
-        {% endif %}
+    <!-- Risk Distribution Doughnut -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-icon">🎯</span>
+        <div><h3>Risk Distribution</h3><p>All assessments by risk level</p></div>
       </div>
-
-      <!-- Disease distribution -->
-      <div class="dash-card">
-        <div class="dash-card-header">
-          <span class="dash-card-icon">🩺</span>
-          <div><h3>Disease Distribution</h3><p>Most common predicted conditions</p></div>
-        </div>
-        {% if disease_counts %}
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          {% for disease, count in disease_counts.items() | sort(attribute=1, reverse=True) %}
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--clr-surface-2); border-radius: 8px;">
-            <span style="font-size: 13px; color: var(--clr-text);">{{ disease }}</span>
-            <span style="font-size: 12px; font-weight: 700; padding: 2px 10px; background: var(--clr-primary-light); color: var(--clr-primary); border-radius: 20px;">{{ count }}</span>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p style="color: var(--clr-text-3); font-size: 13px;">No predictions yet.</p>
-        {% endif %}
+      <div style="position:relative; height:220px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="riskChart"></canvas>
       </div>
-
+      <div style="display:flex; justify-content:center; gap:16px; margin-top:12px; font-size:12px;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;"></span>Low ({{ risk_dist.low }})</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>Medium ({{ risk_dist.medium }})</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;"></span>High ({{ risk_dist.high }})</span>
+      </div>
     </div>
 
+    <!-- Disease Distribution Bar -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-icon">🩺</span>
+        <div><h3>Disease Distribution</h3><p>Most common predicted conditions</p></div>
+      </div>
+      <div style="position:relative; height:220px;">
+        <canvas id="diseaseChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Monthly Registrations Line -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-icon">📅</span>
+        <div><h3>Monthly Registrations</h3><p>New patients over time</p></div>
+      </div>
+      <div style="position:relative; height:220px;">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── BOTTOM GRID ──────────────────────────────────────── -->
+  <div class="dash-grid">
     <div class="dash-col">
 
       <!-- Quick links -->
@@ -96,14 +88,19 @@
           <span class="dash-card-icon">🔗</span>
           <div><h3>Quick Actions</h3><p>Admin management links</p></div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <a href="/admin/patients" class="btn-outline btn-full">👥 View All Patients</a>
-          <a href="/admin/flagged" class="btn-outline btn-full" {% if flagged_count > 0 %}style="border-color: var(--clr-warning); color: var(--clr-warning);"{% endif %}>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <a href="/admin/patients" class="btn-outline btn-full">👥 View All Patients ({{ total_patients }})</a>
+          <a href="/admin/flagged" class="btn-outline btn-full"
+             {% if flagged_count > 0 %}style="border-color:var(--clr-warning); color:var(--clr-warning);"{% endif %}>
             ⚠ Flagged Cases ({{ flagged_count }})
           </a>
-          <a href="/docs" class="btn-outline btn-full" target="_blank">📋 API Documentation</a>
+          <a href="/docs" class="btn-outline btn-full" target="_blank">📋 API Documentation (Swagger)</a>
+          <a href="/redoc" class="btn-outline btn-full" target="_blank">📖 ReDoc Documentation</a>
         </div>
       </div>
+
+    </div>
+    <div class="dash-col">
 
       <!-- Recent predictions -->
       <div class="dash-card">
@@ -112,24 +109,23 @@
           <div><h3>Recent Assessments</h3><p>Latest 10 predictions</p></div>
         </div>
         {% if recent_preds %}
-        <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto;">
           {% for pred in recent_preds %}
-          <div style="padding: 10px 12px; border: 1px solid var(--clr-border); border-radius: 8px;{% if pred.honesty_flag == 'review_needed' %} background: var(--clr-warning-light); border-color: var(--clr-warning);{% endif %}">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="padding:10px 12px; border:1px solid var(--clr-border); border-radius:8px;
+            {% if pred.honesty_flag == 'review_needed' %}background:rgba(245,158,11,0.06); border-color:rgba(245,158,11,0.4);{% endif %}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
-                <div style="font-size: 13px; font-weight: 700; color: var(--clr-text);">
-                  {{ pred.predicted_disease }}
-                </div>
-                <div style="font-size: 11px; color: var(--clr-text-3); margin-top: 2px;">
-                  Patient: {{ pred.patient_id[:8] }}...
+                <div style="font-size:13px; font-weight:700;">{{ pred.predicted_disease }}</div>
+                <div style="font-size:11px; color:var(--clr-text-3); margin-top:2px;">
+                  Patient: {{ pred.patient_id[:8] }}… · {{ pred.confidence_score }}% confidence
                 </div>
               </div>
-              <div style="text-align: right;">
-                <span class="risk-badge risk-{{ pred.risk_level }}" style="font-size: 11px; padding: 2px 8px;">
+              <div style="text-align:right;">
+                <span class="risk-badge risk-{{ pred.risk_level }}" style="font-size:11px; padding:2px 8px;">
                   {{ pred.risk_level }}
                 </span>
                 {% if pred.honesty_flag == 'review_needed' %}
-                <div style="font-size: 10px; color: var(--clr-warning); font-weight: 700; margin-top: 2px;">⚠ FLAGGED</div>
+                <div style="font-size:10px; color:var(--clr-warning); font-weight:700; margin-top:3px;">⚠ FLAGGED</div>
                 {% endif %}
               </div>
             </div>
@@ -137,11 +133,139 @@
           {% endfor %}
         </div>
         {% else %}
-        <p style="color: var(--clr-text-3); font-size: 13px;">No predictions yet.</p>
+        <p style="color:var(--clr-text-3); font-size:13px;">No predictions yet.</p>
         {% endif %}
       </div>
 
     </div>
   </div>
+
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const chartDefaults = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+  }
+};
+
+/* ── Risk Distribution Doughnut ───────────────────────── */
+(function() {
+  const ctx = document.getElementById('riskChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Low', 'Medium', 'High'],
+      datasets: [{
+        data: [{{ risk_dist.low }}, {{ risk_dist.medium }}, {{ risk_dist.high }}],
+        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+        borderColor: '#0f172a',
+        borderWidth: 3,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a', titleColor: '#93c5fd', bodyColor: '#e2e8f0',
+          callbacks: {
+            label: (ctx) => ` ${ctx.label}: ${ctx.parsed} assessments`
+          }
+        }
+      }
+    }
+  });
+})();
+
+/* ── Disease Distribution Bar ──────────────────────────── */
+(function() {
+  const ctx = document.getElementById('diseaseChart');
+  if (!ctx) return;
+  const rawData = {{ disease_counts | tojson }};
+  const sorted  = Object.entries(rawData).sort((a,b) => b[1]-a[1]).slice(0,7);
+  const labels  = sorted.map(x => x[0]);
+  const values  = sorted.map(x => x[1]);
+  const palette = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4'];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: labels.map((_, i) => palette[i % palette.length] + 'cc'),
+        borderColor:     labels.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false },
+        tooltip: { backgroundColor: '#0f172a', titleColor: '#93c5fd', bodyColor: '#e2e8f0' }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+      }
+    }
+  });
+})();
+
+/* ── Monthly Registrations Line ───────────────────────── */
+(function() {
+  const ctx = document.getElementById('monthlyChart');
+  if (!ctx) return;
+  const rawData = {{ monthly_counts | tojson }};
+  const labels  = Object.keys(rawData);
+  const values  = Object.values(rawData);
+
+  if (labels.length === 0) {
+    ctx.closest('.dash-card').querySelector('p, canvas')?.remove();
+    return;
+  }
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'New Patients',
+        data: values,
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139,92,246,0.08)',
+        pointBackgroundColor: '#8b5cf6',
+        pointRadius: 5, borderWidth: 2.5, tension: 0.4, fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#0f172a', titleColor: '#c4b5fd', bodyColor: '#e2e8f0' }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 }, stepSize: 1 } },
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } }
+      }
+    }
+  });
+})();
+</script>
+
+<style>
+.admin-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+</style>
 {% endblock %}

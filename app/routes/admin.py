@@ -2,26 +2,21 @@
 """
 Admin Dashboard
 ================
-Simple admin panel for the college project demo.
 Shows all patients, recent predictions, and flagged MRI cases.
 
 Routes:
-  GET  /admin/          → Admin dashboard overview
+  GET  /admin/          → Admin dashboard overview (with Chart.js analytics)
   GET  /admin/patients  → All patients list
   GET  /admin/flagged   → Flagged (dishonest) cases
 
-Authentication: Basic password check via session.
-In production you'd use a proper admin role system.
-
-Explain in viva:
-  "The admin panel lets the hospital administrator view all patient
-   assessments, see which patients have flagged MRI inconsistencies,
-   and monitor the system's overall usage."
+Bug Fix: Removed N+1 query loop — now fetches all data in one query.
+New: Disease & Risk distribution data passed for Chart.js charts.
 """
 
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from collections import defaultdict
 import os
 
 from app.database import supabase
@@ -71,44 +66,59 @@ async def admin_logout(request: Request):
 
 # ── GET /admin/ ───────────────────────────────────────────────────────
 
+@router.get("")
+async def admin_redirect():
+    """Redirect /admin to /admin/ to fix missing trailing slash issues."""
+    return RedirectResponse("/admin/", status_code=307)
+
 @router.get("/")
 async def admin_dashboard(request: Request):
     if not is_admin(request):
         return RedirectResponse("/admin/login", status_code=302)
 
-    # Stats
     try:
-        total_patients  = len(supabase.table("patient").select("id").execute().data or [])
-        total_preds     = len(supabase.table("predictions").select("id").execute().data or [])
-        flagged         = supabase.table("predictions").select("id").eq("honesty_flag", "review_needed").execute()
-        flagged_count   = len(flagged.data or [])
-
-        # Recent predictions
-        recent = supabase.table("predictions") \
+        # ── Single query for all predictions (fixes N+1 bug) ───────────
+        all_preds_res = supabase.table("predictions") \
             .select("id, patient_id, predicted_disease, risk_level, confidence_score, honesty_flag, created_at") \
-            .order("created_at", desc=True).limit(10).execute()
-        recent_preds = recent.data or []
+            .order("created_at", desc=True).execute()
+        all_preds = all_preds_res.data or []
 
-        # Risk distribution
-        all_preds = supabase.table("predictions").select("risk_level").execute().data or []
+        total_preds    = len(all_preds)
+        recent_preds   = all_preds[:10]                      # Top 10 most recent
+        flagged_count  = sum(1 for p in all_preds if p.get("honesty_flag") == "review_needed")
+
+        # ── Patient count (one separate query, not N queries) ──────────
+        patients_res   = supabase.table("patient").select("id").execute()
+        total_patients = len(patients_res.data or [])
+
+        # ── Risk distribution (Python aggregation, zero extra queries) ──
         risk_dist = {"low": 0, "medium": 0, "high": 0}
         for p in all_preds:
-            risk_dist[p.get("risk_level", "low")] = risk_dist.get(p.get("risk_level", "low"), 0) + 1
+            rl = p.get("risk_level", "low")
+            risk_dist[rl] = risk_dist.get(rl, 0) + 1
 
-        # Disease distribution
-        disease_counts = {}
+        # ── Disease distribution (same single query result) ─────────────
+        disease_counts: dict = defaultdict(int)
         for p in all_preds:
-            d = supabase.table("predictions").select("predicted_disease").execute().data or []
-        all_full = supabase.table("predictions").select("predicted_disease").execute().data or []
-        for p in all_full:
-            dis = p.get("predicted_disease", "Unknown")
-            disease_counts[dis] = disease_counts.get(dis, 0) + 1
+            dis = p.get("predicted_disease") or "Unknown"
+            disease_counts[dis] += 1
+        disease_counts = dict(disease_counts)
+
+        # ── Monthly patient registrations ──────────────────────────────
+        all_patients_res = supabase.table("patient").select("created_at").execute()
+        monthly_counts: dict = defaultdict(int)
+        for pt in (all_patients_res.data or []):
+            if pt.get("created_at"):
+                month_key = pt["created_at"][:7]   # "2026-05"
+                monthly_counts[month_key] += 1
+        monthly_counts = dict(sorted(monthly_counts.items()))
 
     except Exception as e:
         total_patients = total_preds = flagged_count = 0
-        recent_preds = []
-        risk_dist = {"low": 0, "medium": 0, "high": 0}
+        recent_preds   = []
+        risk_dist      = {"low": 0, "medium": 0, "high": 0}
         disease_counts = {}
+        monthly_counts = {}
 
     messages = request.session.pop("messages", [])
     return templates.TemplateResponse("admin_dashboard.html", {
@@ -120,6 +130,7 @@ async def admin_dashboard(request: Request):
         "recent_preds":   recent_preds,
         "risk_dist":      risk_dist,
         "disease_counts": disease_counts,
+        "monthly_counts": monthly_counts,
     })
 
 

@@ -6,10 +6,10 @@ Uses Google Gemini (free tier) to generate personalized health advice.
 Falls back to the rule-based engine if Gemini is unavailable.
 
 Setup:
-  pip install google-generativeai
+  pip install google-genai
   Add to .env: GEMINI_API_KEY=your_key_here
 
-Get free API key: https://makersuite.google.com/app/apikey
+Get free API key: https://aistudio.google.com/app/apikey
 (Completely free — no billing needed for basic use)
 
 Explain in viva:
@@ -27,15 +27,25 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-# Try importing Gemini — graceful fallback if not installed
+# Try importing new Gemini SDK — graceful fallback if not installed
+GEMINI_AVAILABLE = False
+genai_client = None
+
 try:
-    import google.generativeai as genai
+    from google import genai
     if GEMINI_API_KEY:
-        genai.configure(api_key=GEMINI_API_KEY)
-    GEMINI_AVAILABLE = bool(GEMINI_API_KEY)
+        genai_client = genai.Client(api_key=GEMINI_API_KEY)
+        GEMINI_AVAILABLE = True
 except ImportError:
-    GEMINI_AVAILABLE = False
-    print("⚠  google-generativeai not installed. Using rule-based suggestions.")
+    try:
+        # Fallback to old SDK
+        import google.generativeai as genai_legacy
+        if GEMINI_API_KEY:
+            genai_legacy.configure(api_key=GEMINI_API_KEY)
+            GEMINI_AVAILABLE = True
+            genai_client = "legacy"
+    except ImportError:
+        print("[WARN] google-genai not installed. Using rule-based suggestions.")
 
 
 def get_ai_suggestions(
@@ -63,7 +73,7 @@ def get_ai_suggestions(
     try:
         return _call_gemini(predicted_disease, risk_level, form_data or {})
     except Exception as e:
-        print(f"⚠  Gemini call failed: {e}. Falling back to rules.")
+        print(f"[WARN] Gemini call failed: {e}. Falling back to rules.")
         from app.utils.suggestion_engine import get_suggestions
         result = get_suggestions(predicted_disease)
         result["source"] = "rules"
@@ -106,9 +116,20 @@ Rules:
 - Be specific to Indian context (mention Indian foods, hospitals, costs)
 - No markdown formatting, no asterisks, no numbered lists inside strings"""
 
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
-    text = response.text.strip()
+    text = ""
+    if genai_client == "legacy":
+        # Old SDK fallback
+        import google.generativeai as genai_legacy
+        model    = genai_legacy.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
+        text     = response.text.strip()
+    else:
+        # New SDK (google-genai)
+        response = genai_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+        )
+        text = response.text.strip()
 
     # Clean any markdown fences
     text = text.replace("```json", "").replace("```", "").strip()
@@ -133,15 +154,24 @@ def get_insurance_ai_explanation(
     try:
         factors_str = ", ".join(risk_factors[:4]) if risk_factors else "standard health profile"
         prompt = f"""An Indian health insurance system has calculated an annual premium of 
-₹{annual_premium:,} for a patient with: {factors_str}.
+Rs.{annual_premium:,} for a patient with: {factors_str}.
 Predicted health condition: {predicted_disease}.
 
 Write 2 sentences (max 60 words total) explaining WHY this premium was calculated, 
 in simple language an Indian patient can understand. No markdown, no bullet points."""
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        if genai_client == "legacy":
+            import google.generativeai as genai_legacy
+            model    = genai_legacy.GenerativeModel("gemini-1.5-flash")
+            response = model.generate_content(prompt)
+            return response.text.strip()
+        else:
+            response = genai_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
+            return response.text.strip()
+
     except Exception:
         return _template_explanation(annual_premium, risk_factors, predicted_disease)
 
@@ -149,6 +179,6 @@ in simple language an Indian patient can understand. No markdown, no bullet poin
 def _template_explanation(premium: int, factors: list, disease: str) -> str:
     top = factors[0] if factors else "your health profile"
     return (
-        f"Your estimated annual premium of ₹{premium:,} is calculated based on "
+        f"Your estimated annual premium of Rs.{premium:,} is calculated based on "
         f"your health assessment showing {disease}. The primary factor is {top.lower()}."
     )

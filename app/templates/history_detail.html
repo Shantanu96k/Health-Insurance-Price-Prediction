@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Assessment Detail{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Assessment Detail</h1>
+      <p class="page-subtitle">{{ prediction.created_at | default('Date unknown') }}</p>
+    </div>
+    <div style="display:flex; gap:12px;">
+      <a href="/patient/history" class="btn-outline">&larr; History</a>
+      <a href="/patient/dashboard" class="btn-outline">Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Result Banner -->
+  <div class="risk-banner risk-banner--{{ prediction.risk_level | default('low') }}" style="margin-bottom:24px;">
+    <div class="risk-banner-icon">
+      {% if prediction.risk_level == 'high' %}⚠{% elif prediction.risk_level == 'medium' %}◈{% else %}✓{% endif %}
+    </div>
+    <div class="risk-banner-text">
+      <strong>{{ prediction.predicted_disease }} — {{ prediction.risk_level | title }} Risk</strong>
+      <span>Confidence: {{ prediction.confidence_score }}% &nbsp;|&nbsp; MRI: {{ prediction.mri_consistency | default('no_mri') | replace('_', ' ') | title }}</span>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-col">
+
+      <!-- AI Health Tips -->
+      {% if ai_tips %}
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🤖</span>
+          <div><h3>AI Health Tips</h3><p>Personalised for this assessment</p></div>
+        </div>
+
+        {% if ai_tips.do %}
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-success); text-transform:uppercase; margin-bottom:8px;">✅ What To Do</div>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+            {% for tip in ai_tips.do %}
+            <li style="font-size:13px; padding:8px 12px; background:var(--clr-success-light); border-radius:8px; color:var(--clr-text);">→ {{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if ai_tips.dont %}
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-danger); text-transform:uppercase; margin-bottom:8px;">🚫 What NOT To Do</div>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+            {% for tip in ai_tips.dont %}
+            <li style="font-size:13px; padding:8px 12px; background:var(--clr-danger-light); border-radius:8px; color:var(--clr-text);">✕ {{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if ai_tips.diet %}
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-warning); text-transform:uppercase; margin-bottom:8px;">🥗 Diet</div>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+            {% for tip in ai_tips.diet %}
+            <li style="font-size:13px; padding:8px 12px; background:var(--clr-warning-light); border-radius:8px; color:var(--clr-text);">● {{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if ai_tips.exercise %}
+        <div>
+          <div style="font-size:12px; font-weight:700; color:var(--clr-primary); text-transform:uppercase; margin-bottom:8px;">🏃 Exercise</div>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+            {% for tip in ai_tips.exercise %}
+            <li style="font-size:13px; padding:8px 12px; background:var(--clr-primary-light); border-radius:8px; color:var(--clr-text);">▸ {{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Suggestions -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">🛡️</span>
+          <div><h3>Clinical Precautions</h3><p>Immediate actions to take</p></div>
+        </div>
+        <ul class="suggestion-list">
+          {% for item in suggestions.precautions %}
+          <li class="suggestion-item suggestion-item--warn"><span class="sug-icon">⚠</span><span>{{ item }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="dash-col">
+
+      <!-- Form snapshot -->
+      {% if form_data %}
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-icon">📋</span>
+          <div><h3>Assessment Snapshot</h3><p>Your answers at the time of this prediction</p></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          {% set symptom_labels = {
+            'fever':'Fever','cough':'Cough','chest_pain':'Chest Pain',
+            'shortness_of_breath':'Breathlessness','fatigue':'Fatigue',
+            'headache':'Headache','joint_pain':'Joint Pain','skin_rash':'Skin Rash',
+            'nausea':'Nausea','weight_loss':'Weight Loss'
+          } %}
+          {% for key, label in symptom_labels.items() %}
+          <div style="padding:8px 12px; border-radius:8px; font-size:12px;
+            background:{% if form_data.get(key) %}var(--clr-danger-light){% else %}var(--clr-surface-2){% endif %};">
+            <span>{{ label }}</span>
+            <span style="float:right; font-weight:700; color:{% if form_data.get(key) %}var(--clr-danger){% else %}var(--clr-text-3){% endif %};">
+              {% if form_data.get(key) %}Yes{% else %}No{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--clr-border);">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-text-3); text-transform:uppercase; margin-bottom:10px;">Lifestyle Factors</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            {% set lifestyle = {
+              'smoker':'Smoker','alcohol_use':'Alcohol Use',
+              'blood_pressure':'Blood Pressure','blood_sugar':'Blood Sugar',
+              'exercise_frequency':'Exercise','diet_quality':'Diet'
+            } %}
+            {% for key, label in lifestyle.items() %}
+            <div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid var(--clr-border);">
+              <span style="color:var(--clr-text-2);">{{ label }}</span>
+              <span style="font-weight:700;">{{ form_data.get(key, '—') | title if not form_data.get(key) is boolean else ('Yes' if form_data.get(key) else 'No') }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Insurance CTA -->
+      <div class="dash-card dash-card--cta">
+        <div class="cta-icon">🛡️</div>
+        <h3>View Insurance Plan</h3>
+        <p>Based on this <strong>{{ prediction.risk_level }} risk</strong> assessment.</p>
+        <a href="/insurance/plans?prediction_id={{ prediction.id }}" class="btn-primary btn-full">View Plans &rarr;</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

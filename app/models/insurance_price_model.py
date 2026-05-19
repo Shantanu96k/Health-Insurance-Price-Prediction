@@ -28,9 +28,9 @@ def _load():
     try:
         with open(MODEL_PATH, "rb") as f:
             _MODEL_DATA = pickle.load(f)
-        print("✓ Insurance price model loaded.")
+        print("[OK] Insurance price model loaded.")
     except FileNotFoundError:
-        print("⚠  ml/insurance_model.pkl not found. Run python ml/train_insurance_model.py")
+        print("[WARN]  ml/insurance_model.pkl not found. Run python ml/train_insurance_model.py")
         _MODEL_DATA = None
 
 _load()

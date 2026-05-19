@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Prediction History{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Prediction History</h1>
+      <p class="page-subtitle">All {{ total }} health assessment{{ 's' if total != 1 else '' }} on your account.</p>
+    </div>
+    <div style="display:flex; gap:12px;">
+      <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
+      <a href="/patient/form" class="btn-primary">+ New Assessment</a>
+    </div>
+  </div>
+
+  {% if not predictions %}
+  <!-- Empty state -->
+  <div style="text-align:center; padding:60px 24px; background:var(--clr-surface); border-radius:var(--radius-xl); border:1px solid var(--clr-border);">
+    <div style="font-size:56px; margin-bottom:16px;">📋</div>
+    <h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:8px;">No History Yet</h2>
+    <p style="color:var(--clr-text-2); margin-bottom:24px;">Complete your first health assessment to see results here.</p>
+    <a href="/patient/form" class="btn-primary">Start Assessment →</a>
+  </div>
+  {% else %}
+
+  <!-- Stats row -->
+  <div class="summary-strip" style="grid-template-columns: repeat(3,1fr); margin-bottom:24px;">
+    <div class="summary-card">
+      <div class="sumcard-label">Total Assessments</div>
+      <div class="sumcard-value">{{ total }}</div>
+      <div class="sumcard-sub">All-time records</div>
+    </div>
+    <div class="summary-card">
+      <div class="sumcard-label">Latest Risk Level</div>
+      <div class="sumcard-value">
+        <span class="risk-badge risk-{{ predictions[0].risk_level }}">
+          {{ predictions[0].risk_level | title }}
+        </span>
+      </div>
+      <div class="sumcard-sub">Most recent assessment</div>
+    </div>
+    <div class="summary-card">
+      <div class="sumcard-label">Latest Confidence</div>
+      <div class="sumcard-value">{{ predictions[0].confidence_score }}%</div>
+      <div class="sumcard-sub">ML prediction confidence</div>
+    </div>
+  </div>
+
+  <!-- History list -->
+  <div class="history-list">
+    {% for pred in predictions %}
+    <div class="history-card {% if loop.first %}history-card--latest{% endif %}">
+      {% if loop.first %}
+      <div class="history-latest-badge">Latest</div>
+      {% endif %}
+
+      <div class="history-card-main">
+        <div class="history-card-left">
+          <div class="history-disease">{{ pred.predicted_disease }}</div>
+          <div class="history-date">{{ pred.created_at | default('Date unknown') }}</div>
+        </div>
+
+        <div class="history-card-center">
+          <span class="risk-badge risk-{{ pred.risk_level }}">
+            {% if pred.risk_level == 'high' %}⚠ High{% elif pred.risk_level == 'medium' %}◈ Medium{% else %}✓ Low{% endif %}
+          </span>
+        </div>
+
+        <div class="history-card-stats">
+          <div class="hist-stat">
+            <span class="hist-stat-label">Confidence</span>
+            <span class="hist-stat-value">{{ pred.confidence_score }}%</span>
+          </div>
+          <div class="hist-stat">
+            <span class="hist-stat-label">MRI Check</span>
+            <span class="hist-stat-value {% if pred.honesty_flag == 'trusted' %}val-ok{% else %}val-warn{% endif %}">
+              {% if pred.honesty_flag == 'trusted' %}✓ OK{% else %}⚠ Flag{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="history-card-action">
+          <a href="/patient/history/{{ pred.id }}" class="btn-outline" style="padding:8px 16px; font-size:13px;">
+            View Details →
+          </a>
+        </div>
+      </div>
+
+      <!-- Mini confidence bar -->
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--clr-border);">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--clr-text-3); margin-bottom:4px;">
+          <span>Prediction confidence</span>
+          <span>{{ pred.confidence_score }}%</span>
+        </div>
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width:{{ pred.confidence_score }}%; transition:width 1s ease;"></div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+.history-list { display: flex; flex-direction: column; gap: 16px; }
+
+.history-card {
+  background: var(--clr-surface); border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg); padding: 20px;
+  box-shadow: var(--shadow-sm); position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.history-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.history-card--latest {
+  border-color: var(--clr-primary);
+  box-shadow: 0 0 0 2px rgba(26,86,219,0.1);
+}
+.history-latest-badge {
+  position: absolute; top: -10px; left: 20px;
+  background: var(--clr-primary); color: #fff;
+  font-size: 11px; font-weight: 700; padding: 2px 12px;
+  border-radius: 20px; letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.history-card-main {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.history-card-left { flex: 1; min-width: 180px; }
+.history-disease {
+  font-size: 16px; font-weight: 700; color: var(--clr-text); margin-bottom: 4px;
+}
+.history-date { font-size: 12px; color: var(--clr-text-3); }
+
+.history-card-center { flex-shrink: 0; }
+
+.history-card-stats {
+  display: flex; gap: 24px; flex-shrink: 0;
+}
+.hist-stat { display: flex; flex-direction: column; gap: 2px; }
+.hist-stat-label { font-size: 11px; color: var(--clr-text-3); font-weight: 600; text-transform: uppercase; }
+.hist-stat-value { font-size: 14px; font-weight: 700; color: var(--clr-text); }
+
+.history-card-action { margin-left: auto; flex-shrink: 0; }
+
+@media (max-width: 600px) {
+  .history-card-main { flex-direction: column; align-items: flex-start; }
+  .history-card-action { width: 100%; }
+  .history-card-action a { width: 100%; text-align: center; display: block; }
+}
+</style>
+{% endblock %}

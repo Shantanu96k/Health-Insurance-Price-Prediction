@@ -4,7 +4,6 @@
 {% block content %}
 <div class="form-page">
 
-  <!-- Page header -->
   <div class="page-header">
     <h1 class="page-title">Health Questionnaire</h1>
     <p class="page-subtitle">
@@ -36,7 +35,7 @@
     </div>
   </div>
 
-  <!-- FORM -->
+  <!-- FORM — FIX: removed onclick from submit button, use form submit event instead -->
   <form action="/patient/submit-form" method="POST" enctype="multipart/form-data" id="healthForm">
     <input type="hidden" name="patient_id" value="{{ patient_id }}" />
 
@@ -52,7 +51,6 @@
         </div>
 
         <div class="symptom-grid">
-
           <label class="symptom-card" data-symptom="fever">
             <input type="checkbox" name="fever" value="1" class="sym-check" />
             <div class="sym-icon">🌡️</div>
@@ -60,7 +58,6 @@
             <div class="sym-desc">Body temperature above 100°F</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="cough">
             <input type="checkbox" name="cough" value="1" class="sym-check" />
             <div class="sym-icon">😮‍💨</div>
@@ -68,7 +65,6 @@
             <div class="sym-desc">Persistent dry or wet cough</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="chest_pain">
             <input type="checkbox" name="chest_pain" value="1" class="sym-check" />
             <div class="sym-icon">💔</div>
@@ -76,7 +72,6 @@
             <div class="sym-desc">Tightness, pressure or pain</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="shortness_of_breath">
             <input type="checkbox" name="shortness_of_breath" value="1" class="sym-check" />
             <div class="sym-icon">🌬️</div>
@@ -84,7 +79,6 @@
             <div class="sym-desc">Difficulty breathing</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="fatigue">
             <input type="checkbox" name="fatigue" value="1" class="sym-check" />
             <div class="sym-icon">😴</div>
@@ -92,7 +86,6 @@
             <div class="sym-desc">Constant tiredness or weakness</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="headache">
             <input type="checkbox" name="headache" value="1" class="sym-check" />
             <div class="sym-icon">🤕</div>
@@ -100,7 +93,6 @@
             <div class="sym-desc">Frequent or severe head pain</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="joint_pain">
             <input type="checkbox" name="joint_pain" value="1" class="sym-check" />
             <div class="sym-icon">🦴</div>
@@ -108,7 +100,6 @@
             <div class="sym-desc">Pain in knees, wrists or hips</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="skin_rash">
             <input type="checkbox" name="skin_rash" value="1" class="sym-check" />
             <div class="sym-icon">🔴</div>
@@ -116,7 +107,6 @@
             <div class="sym-desc">Unusual redness or irritation</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="nausea">
             <input type="checkbox" name="nausea" value="1" class="sym-check" />
             <div class="sym-icon">🤢</div>
@@ -124,7 +114,6 @@
             <div class="sym-desc">Feeling of sickness or vomiting</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
           <label class="symptom-card" data-symptom="weight_loss">
             <input type="checkbox" name="weight_loss" value="1" class="sym-check" />
             <div class="sym-icon">⚖️</div>
@@ -132,7 +121,6 @@
             <div class="sym-desc">Unexplained weight drop</div>
             <div class="sym-check-mark">✓</div>
           </label>
-
         </div>
 
         <div class="selected-count" id="selectedCount">0 symptoms selected</div>
@@ -158,8 +146,6 @@
         </div>
 
         <div class="lifestyle-grid">
-
-          <!-- Smoker -->
           <div class="lifestyle-row">
             <div class="lifestyle-label">
               <span class="lf-icon">🚬</span>
@@ -169,18 +155,11 @@
               </div>
             </div>
             <div class="toggle-group">
-              <label class="toggle-opt">
-                <input type="radio" name="smoker" value="1" required />
-                <span class="toggle-box">Yes</span>
-              </label>
-              <label class="toggle-opt">
-                <input type="radio" name="smoker" value="0" />
-                <span class="toggle-box">No</span>
-              </label>
+              <label class="toggle-opt"><input type="radio" name="smoker" value="1" required /><span class="toggle-box">Yes</span></label>
+              <label class="toggle-opt"><input type="radio" name="smoker" value="0" /><span class="toggle-box">No</span></label>
             </div>
           </div>
 
-          <!-- Alcohol -->
           <div class="lifestyle-row">
             <div class="lifestyle-label">
               <span class="lf-icon">🍺</span>
@@ -190,18 +169,11 @@
               </div>
             </div>
             <div class="toggle-group">
-              <label class="toggle-opt">
-                <input type="radio" name="alcohol_use" value="1" required />
-                <span class="toggle-box">Yes</span>
-              </label>
-              <label class="toggle-opt">
-                <input type="radio" name="alcohol_use" value="0" />
-                <span class="toggle-box">No</span>
-              </label>
+              <label class="toggle-opt"><input type="radio" name="alcohol_use" value="1" required /><span class="toggle-box">Yes</span></label>
+              <label class="toggle-opt"><input type="radio" name="alcohol_use" value="0" /><span class="toggle-box">No</span></label>
             </div>
           </div>
 
-          <!-- Exercise -->
           <div class="lifestyle-row lifestyle-row--stack">
             <div class="lifestyle-label">
               <span class="lf-icon">💪</span>
@@ -213,29 +185,19 @@
             <div class="select-group">
               <label class="select-opt">
                 <input type="radio" name="exercise_frequency" value="never" required />
-                <span class="select-box">
-                  <span class="sel-title">Never</span>
-                  <span class="sel-sub">Sedentary lifestyle</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Never</span><span class="sel-sub">Sedentary lifestyle</span></span>
               </label>
               <label class="select-opt">
                 <input type="radio" name="exercise_frequency" value="sometimes" />
-                <span class="select-box">
-                  <span class="sel-title">Sometimes</span>
-                  <span class="sel-sub">1–2 times per week</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Sometimes</span><span class="sel-sub">1–2 times/week</span></span>
               </label>
               <label class="select-opt">
                 <input type="radio" name="exercise_frequency" value="regular" />
-                <span class="select-box">
-                  <span class="sel-title">Regular</span>
-                  <span class="sel-sub">3+ times per week</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Regular</span><span class="sel-sub">3+ times/week</span></span>
               </label>
             </div>
           </div>
 
-          <!-- Diet -->
           <div class="lifestyle-row lifestyle-row--stack">
             <div class="lifestyle-label">
               <span class="lf-icon">🥗</span>
@@ -247,29 +209,19 @@
             <div class="select-group">
               <label class="select-opt">
                 <input type="radio" name="diet_quality" value="poor" required />
-                <span class="select-box">
-                  <span class="sel-title">Poor</span>
-                  <span class="sel-sub">Lots of junk food</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Poor</span><span class="sel-sub">Lots of junk food</span></span>
               </label>
               <label class="select-opt">
                 <input type="radio" name="diet_quality" value="average" />
-                <span class="select-box">
-                  <span class="sel-title">Average</span>
-                  <span class="sel-sub">Mixed, could be better</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Average</span><span class="sel-sub">Mixed, could be better</span></span>
               </label>
               <label class="select-opt">
                 <input type="radio" name="diet_quality" value="good" />
-                <span class="select-box">
-                  <span class="sel-title">Good</span>
-                  <span class="sel-sub">Balanced, home-cooked</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Good</span><span class="sel-sub">Balanced, home-cooked</span></span>
               </label>
             </div>
           </div>
 
-          <!-- Blood pressure -->
           <div class="lifestyle-row lifestyle-row--stack">
             <div class="lifestyle-label">
               <span class="lf-icon">🩸</span>
@@ -281,29 +233,19 @@
             <div class="select-group">
               <label class="select-opt">
                 <input type="radio" name="blood_pressure" value="normal" required />
-                <span class="select-box">
-                  <span class="sel-title">Normal</span>
-                  <span class="sel-sub">120/80 or below</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Normal</span><span class="sel-sub">120/80 or below</span></span>
               </label>
               <label class="select-opt">
                 <input type="radio" name="blood_pressure" value="high" />
-                <span class="select-box">
-                  <span class="sel-title">High</span>
-                  <span class="sel-sub">Above 140/90</span>
-                </span>
+                <span class="select-box"><span class="sel-title">High</span><span class="sel-sub">Above 140/90</span></span>
               </label>
               <label class="select-opt">
                 <input type="radio" name="blood_pressure" value="low" />
-                <span class="select-box">
-                  <span class="sel-title">Low</span>
-                  <span class="sel-sub">Below 90/60</span>
-                </span>
+                <span class="select-box"><span class="sel-title">Low</span><span class="sel-sub">Below 90/60</span></span>
               </label>
             </div>
           </div>
 
-          <!-- Blood sugar -->
           <div class="lifestyle-row">
             <div class="lifestyle-label">
               <span class="lf-icon">🍬</span>
@@ -313,25 +255,16 @@
               </div>
             </div>
             <div class="toggle-group">
-              <label class="toggle-opt">
-                <input type="radio" name="blood_sugar" value="normal" required />
-                <span class="toggle-box">Normal</span>
-              </label>
-              <label class="toggle-opt">
-                <input type="radio" name="blood_sugar" value="high" />
-                <span class="toggle-box">High</span>
-              </label>
+              <label class="toggle-opt"><input type="radio" name="blood_sugar" value="normal" required /><span class="toggle-box">Normal</span></label>
+              <label class="toggle-opt"><input type="radio" name="blood_sugar" value="high" /><span class="toggle-box">High</span></label>
             </div>
           </div>
-
         </div>
       </div>
 
       <div class="form-nav">
         <button type="button" class="btn-outline" onclick="prevStep(2)">&larr; Back</button>
-        <button type="button" class="btn-primary" onclick="nextStep(2)">
-          Next: Family History &rarr;
-        </button>
+        <button type="button" class="btn-primary" onclick="nextStep(2)">Next: Family History &rarr;</button>
       </div>
     </div>
 
@@ -347,7 +280,6 @@
         </div>
 
         <div class="fam-grid">
-
           <div class="fam-card">
             <div class="fam-icon">🫀</div>
             <div class="fam-info">
@@ -355,17 +287,10 @@
               <small>Heart attack, stroke, coronary artery disease</small>
             </div>
             <div class="toggle-group">
-              <label class="toggle-opt">
-                <input type="radio" name="family_history_heart" value="1" required />
-                <span class="toggle-box">Yes</span>
-              </label>
-              <label class="toggle-opt">
-                <input type="radio" name="family_history_heart" value="0" />
-                <span class="toggle-box">No</span>
-              </label>
+              <label class="toggle-opt"><input type="radio" name="family_history_heart" value="1" required /><span class="toggle-box">Yes</span></label>
+              <label class="toggle-opt"><input type="radio" name="family_history_heart" value="0" /><span class="toggle-box">No</span></label>
             </div>
           </div>
-
           <div class="fam-card">
             <div class="fam-icon">🍬</div>
             <div class="fam-info">
@@ -373,17 +298,10 @@
               <small>Type 1 or Type 2 diabetes</small>
             </div>
             <div class="toggle-group">
-              <label class="toggle-opt">
-                <input type="radio" name="family_history_diabetes" value="1" required />
-                <span class="toggle-box">Yes</span>
-              </label>
-              <label class="toggle-opt">
-                <input type="radio" name="family_history_diabetes" value="0" />
-                <span class="toggle-box">No</span>
-              </label>
+              <label class="toggle-opt"><input type="radio" name="family_history_diabetes" value="1" required /><span class="toggle-box">Yes</span></label>
+              <label class="toggle-opt"><input type="radio" name="family_history_diabetes" value="0" /><span class="toggle-box">No</span></label>
             </div>
           </div>
-
           <div class="fam-card">
             <div class="fam-icon">🎗️</div>
             <div class="fam-info">
@@ -391,17 +309,10 @@
               <small>Any type of malignancy</small>
             </div>
             <div class="toggle-group">
-              <label class="toggle-opt">
-                <input type="radio" name="family_history_cancer" value="1" required />
-                <span class="toggle-box">Yes</span>
-              </label>
-              <label class="toggle-opt">
-                <input type="radio" name="family_history_cancer" value="0" />
-                <span class="toggle-box">No</span>
-              </label>
+              <label class="toggle-opt"><input type="radio" name="family_history_cancer" value="1" required /><span class="toggle-box">Yes</span></label>
+              <label class="toggle-opt"><input type="radio" name="family_history_cancer" value="0" /><span class="toggle-box">No</span></label>
             </div>
           </div>
-
         </div>
 
         <div class="info-note">
@@ -413,9 +324,7 @@
 
       <div class="form-nav">
         <button type="button" class="btn-outline" onclick="prevStep(3)">&larr; Back</button>
-        <button type="button" class="btn-primary" onclick="nextStep(3)">
-          Next: MRI Upload &rarr;
-        </button>
+        <button type="button" class="btn-primary" onclick="nextStep(3)">Next: MRI Upload &rarr;</button>
       </div>
     </div>
 
@@ -426,29 +335,18 @@
           <span class="card-icon">🔬</span>
           <div>
             <h3>MRI / Scan Upload <span class="badge-opt">Optional</span></h3>
-            <p>
-              Upload an MRI or scan if you have one. This lets us cross-check
-              your answers for a more reliable result.
-            </p>
+            <p>Upload an MRI or scan if you have one. This lets us cross-check your answers.</p>
           </div>
         </div>
 
-        <!-- Upload zone -->
         <div class="upload-zone" id="uploadZone" onclick="document.getElementById('mri_file').click()">
           <div class="upload-icon">📁</div>
           <div class="upload-title">Click or drag & drop your MRI file</div>
           <div class="upload-sub">Accepted formats: JPG, PNG, DICOM, PDF — Max 10 MB</div>
-          <input
-            type="file"
-            id="mri_file"
-            name="mri_file"
-            accept=".jpg,.jpeg,.png,.dcm,.pdf"
-            style="display:none"
-            onchange="handleFileSelect(this)"
-          />
+          <input type="file" id="mri_file" name="mri_file" accept=".jpg,.jpeg,.png,.dcm,.pdf"
+            style="display:none" onchange="handleFileSelect(this)" />
         </div>
 
-        <!-- File preview (hidden until file selected) -->
         <div class="file-preview hidden" id="filePreview">
           <div class="file-preview-icon">📄</div>
           <div class="file-preview-info">
@@ -458,49 +356,46 @@
           <button type="button" class="file-remove" onclick="removeFile()">✕ Remove</button>
         </div>
 
-        <!-- What we check note -->
         <div class="mri-note-grid">
-          <div class="mri-note-item">
-            <span class="mri-note-icon check">✓</span>
-            <span>We verify image is a real medical scan (size & format check)</span>
-          </div>
-          <div class="mri-note-item">
-            <span class="mri-note-icon check">✓</span>
-            <span>We compare MRI presence with your reported symptoms</span>
-          </div>
-          <div class="mri-note-item">
-            <span class="mri-note-icon check">✓</span>
-            <span>Inconsistencies are flagged for medical review</span>
-          </div>
-          <div class="mri-note-item">
-            <span class="mri-note-icon info">ℹ</span>
-            <span>Uploading MRI but reporting zero symptoms will be flagged</span>
-          </div>
+          <div class="mri-note-item"><span class="mri-note-icon check">✓</span><span>We verify image is a real medical scan</span></div>
+          <div class="mri-note-item"><span class="mri-note-icon check">✓</span><span>We compare MRI with your reported symptoms</span></div>
+          <div class="mri-note-item"><span class="mri-note-icon check">✓</span><span>Inconsistencies are flagged for medical review</span></div>
+          <div class="mri-note-item"><span class="mri-note-icon info">ℹ</span><span>MRI + zero symptoms will be flagged</span></div>
         </div>
+      </div>
 
+      <!-- Processing overlay -->
+      <div class="processing-overlay hidden" id="processingOverlay">
+        <div class="processing-box">
+          <div class="processing-spinner"></div>
+          <div class="processing-title">Running Analysis...</div>
+          <div class="processing-steps">
+            <div class="proc-step" id="proc1">✓ Processing form data</div>
+            <div class="proc-step proc-step--active" id="proc2">⟳ Running ML ensemble model</div>
+            <div class="proc-step" id="proc3">○ Generating health tips</div>
+            <div class="proc-step" id="proc4">○ Calculating insurance plan</div>
+          </div>
+          <p style="margin-top:16px; font-size:12px; color:#94a3b8;">This takes 3–5 seconds. Please wait.</p>
+        </div>
       </div>
 
       <div class="form-nav">
         <button type="button" class="btn-outline" onclick="prevStep(4)">&larr; Back</button>
-        <button type="submit" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+        <!-- FIX: type="submit" with NO onclick handler that disables the button before submit -->
+        <button type="submit" class="btn-submit" id="submitBtn">
           <span class="submit-icon">🧠</span>
           <span class="btn-text">Run Prediction</span>
-          <span class="btn-spinner hidden" id="submitSpinner"></span>
         </button>
       </div>
-
     </div>
 
   </form>
-
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  // ── Step navigation ──────────────────────────────────────────
   let currentStep = 1;
-  const totalSteps = 4;
 
   function showStep(n) {
     document.querySelectorAll('.form-step').forEach(s => s.classList.add('hidden'));
@@ -540,7 +435,7 @@
 
   function prevStep(from) { showStep(from - 1); }
 
-  // ── Symptom cards ────────────────────────────────────────────
+  // Symptom cards
   document.querySelectorAll('.symptom-card').forEach(card => {
     const cb = card.querySelector('.sym-check');
     cb.addEventListener('change', () => {
@@ -555,7 +450,7 @@
       n === 0 ? 'No symptoms selected' : n + ' symptom' + (n > 1 ? 's' : '') + ' selected';
   }
 
-  // ── File upload ───────────────────────────────────────────────
+  // File upload
   const zone = document.getElementById('uploadZone');
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
@@ -565,15 +460,10 @@
     if (file) setFile(file);
   });
 
-  function handleFileSelect(input) {
-    if (input.files[0]) setFile(input.files[0]);
-  }
+  function handleFileSelect(input) { if (input.files[0]) setFile(input.files[0]); }
 
   function setFile(file) {
-    const maxMB = 10;
-    if (file.size > maxMB * 1024 * 1024) {
-      alert('File too large. Maximum size is 10 MB.'); return;
-    }
+    if (file.size > 10 * 1024 * 1024) { alert('File too large. Maximum 10 MB.'); return; }
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileSize').textContent = (file.size / (1024*1024)).toFixed(2) + ' MB';
     document.getElementById('uploadZone').classList.add('hidden');
@@ -586,9 +476,71 @@
     document.getElementById('filePreview').classList.add('hidden');
   }
 
-  function handleSubmit() {
-    document.getElementById('submitSpinner').classList.remove('hidden');
-    document.getElementById('submitBtn').disabled = true;
-  }
+  // FIX: Attach submit handler to FORM, not button onclick
+  // This prevents the "disabled before submit" race condition
+  document.getElementById('healthForm').addEventListener('submit', function(e) {
+    // Show processing overlay
+    const overlay = document.getElementById('processingOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+    
+    // Animate processing steps
+    const steps = ['proc1','proc2','proc3','proc4'];
+    steps.forEach((id, i) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('proc-step--active');
+          el.textContent = el.textContent.replace('○', '⟳');
+        }
+        if (i > 0) {
+          const prev = document.getElementById(steps[i-1]);
+          if (prev) prev.textContent = prev.textContent.replace('⟳', '✓');
+        }
+      }, i * 800);
+    });
+
+    // Disable submit button AFTER form has started submitting
+    setTimeout(() => {
+      const btn = document.getElementById('submitBtn');
+      if (btn) btn.disabled = true;
+    }, 100);
+  });
 </script>
+
+<style>
+.processing-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(15, 23, 42, 0.75);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.processing-box {
+  background: #1e293b; border-radius: 20px;
+  padding: 40px; max-width: 360px; width: 90%;
+  text-align: center; color: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.processing-spinner {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #3b82f6;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.processing-title {
+  font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 20px;
+}
+.processing-steps {
+  display: flex; flex-direction: column; gap: 10px; text-align: left;
+}
+.proc-step {
+  font-size: 13px; color: #64748b; padding: 8px 12px;
+  border-radius: 8px; background: rgba(255,255,255,0.05);
+  transition: all 0.3s;
+}
+.proc-step--active {
+  color: #93c5fd; background: rgba(59,130,246,0.15);
+}
+</style>
 {% endblock %}

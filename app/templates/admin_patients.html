@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Admin — All Patients{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">All Patients</h1>
+      <p class="page-subtitle">{{ patients | length }} registered patient(s) in the system</p>
+    </div>
+    <a href="/admin/" class="btn-outline">← Back to Dashboard</a>
+  </div>
+
+  <div class="dash-card" style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Age</th>
+          <th>Gender</th>
+          <th>Registered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td style="color:var(--clr-text-3); font-size:12px;">{{ loop.index }}</td>
+          <td><strong>{{ p.full_name }}</strong></td>
+          <td style="color:var(--clr-text-2); font-size:13px;">{{ p.email }}</td>
+          <td>{{ p.age }}</td>
+          <td>{{ p.gender | title }}</td>
+          <td style="color:var(--clr-text-3); font-size:12px;">{{ p.created_at[:10] if p.created_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--clr-text-3);">No patients registered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.admin-table { width:100%; border-collapse:collapse; font-size:14px; }
+.admin-table th {
+  padding: 12px 16px; text-align:left; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--clr-text-3);
+  border-bottom:1px solid var(--clr-border);
+}
+.admin-table td {
+  padding: 14px 16px; border-bottom:1px solid var(--clr-border);
+}
+.admin-table tr:hover td { background: var(--clr-surface-2); }
+</style>
+{% endblock %}

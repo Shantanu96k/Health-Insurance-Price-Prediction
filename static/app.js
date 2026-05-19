@@ -149,17 +149,18 @@ function validateRadioFields(fieldNames) {
   return true;
 }
 
-/* ── 11. CONFIDENCE BAR ANIMATION (dashboard) ─────────────────── */
-window.addEventListener('load', () => {
+
+/* ── 11. CONFIDENCE BAR ANIMATION (dashboard) ──────────────── */
+/* Triggered once from dashboard.html — NOT duplicated here.        */
+function animateConfidenceBar() {
   const fill = document.querySelector('.confidence-fill');
-  if (fill) {
-    const targetWidth = fill.style.width;
-    fill.style.width = '0%';
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        fill.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1)';
-        fill.style.width = targetWidth;
-      }, 300);
-    });
-  }
-});
+  if (!fill) return;
+  const targetWidth = fill.dataset.target || fill.style.width;
+  fill.style.width = '0%';
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      fill.style.transition = 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+      fill.style.width = targetWidth;
+    }, 400);
+  });
+}

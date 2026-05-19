@@ -4,73 +4,272 @@
 {% block content %}
 <div class="dashboard-page">
 
-  <!-- Page header -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Health Report</h1>
       <p class="page-subtitle">Generated on {{ prediction.created_at | default('today') }}</p>
     </div>
-    <a href="/patient/form" class="btn-outline">Retake Assessment</a>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      {% if prediction and prediction.id %}
+      <a href="/patient/report/{{ prediction.id }}" class="btn-outline" title="Download PDF Report">
+        📄 Download PDF
+      </a>
+      {% endif %}
+      <a href="/patient/history" class="btn-outline">📋 History ({{ total_predictions }})</a>
+      <a href="/patient/form" class="btn-outline">Retake Assessment</a>
+    </div>
   </div>
 
-  <!-- ── TOP SUMMARY STRIP ──────────────────────────────── -->
-  <div class="summary-strip">
+  {% if no_data %}
+  <!-- Empty state -->
+  <div style="text-align:center; padding:60px 24px; background:var(--clr-surface); border-radius:var(--radius-xl); border:1px solid var(--clr-border);">
+    <div style="font-size:56px; margin-bottom:16px;">🩺</div>
+    <h2 style="font-family:var(--font-display); font-size:24px; margin-bottom:8px;">No Assessment Yet</h2>
+    <p style="color:var(--clr-text-2); margin-bottom:24px;">Complete the health questionnaire to get your personalised prediction and health tips.</p>
+    <a href="/patient/form" class="btn-primary">Start Health Assessment →</a>
+  </div>
+  {% else %}
 
-    <div class="summary-card summary-card--disease">
-      <div class="sumcard-label">Predicted Condition</div>
-      <div class="sumcard-value">{{ prediction.predicted_disease }}</div>
-      <div class="sumcard-sub">Based on your reported symptoms</div>
-    </div>
-
-    <div class="summary-card summary-card--risk risk-{{ prediction.risk_level }}">
-      <div class="sumcard-label">Risk Level</div>
-      <div class="sumcard-value risk-badge risk-{{ prediction.risk_level }}">
-        {% if prediction.risk_level == 'high' %}⚠ High Risk
-        {% elif prediction.risk_level == 'medium' %}◈ Medium Risk
-        {% else %}✓ Low Risk{% endif %}
+  <!-- ── DOCTOR HIGH-RISK ALERT ─────────────────────────────── -->
+  {% if doctor_alert %}
+  <div class="doctor-alert-banner">
+    <div class="doctor-alert-icon">🚨</div>
+    <div class="doctor-alert-body">
+      <strong>High Risk Detected — Share with Your Doctor</strong>
+      <p>Your assessment flagged <strong>{{ doctor_alert.disease }}</strong> at {{ doctor_alert.confidence }}% confidence.
+        We've prepared a doctor-ready summary for you.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+        <a href="{{ doctor_alert.mailto_link }}" class="btn-alert-primary">
+          📧 Email Doctor Summary
+        </a>
+        {% if total_predictions > 0 %}
+        <a href="https://wa.me/?text={{ doctor_alert.summary_text | urlencode }}" target="_blank" class="btn-alert-whatsapp">
+          💬 Share via WhatsApp
+        </a>
+        {% endif %}
+        <a href="/patient/report/{{ prediction.id }}" class="btn-alert-pdf">
+          📄 Download Full Report
+        </a>
       </div>
-      <div class="sumcard-sub">
-        {% if prediction.risk_level == 'high' %}Immediate consultation recommended
-        {% elif prediction.risk_level == 'medium' %}Monitor and follow suggestions
-        {% else %}Continue healthy habits{% endif %}
-      </div>
     </div>
+  </div>
+  {% endif %}
 
-    <div class="summary-card">
-      <div class="sumcard-label">Confidence Score</div>
-      <div class="sumcard-value">{{ prediction.confidence_score }}%</div>
-      <div class="confidence-bar-wrap">
-        <div class="confidence-bar">
-          <div class="confidence-fill" style="width: {{ prediction.confidence_score }}%"></div>
+  <!-- ── HEALTH SCORE GAUGE + SUMMARY STRIP ─────────────────── -->
+  <div class="hero-strip">
+
+    <!-- Health Score Gauge -->
+    {% if health_score %}
+    <div class="health-score-card">
+      <div class="hs-label">Wellness Score</div>
+      <div class="hs-gauge-wrap">
+        <svg class="hs-gauge" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <circle class="hs-track" cx="60" cy="60" r="50" />
+          <circle class="hs-fill"
+            cx="60" cy="60" r="50"
+            stroke="{{ health_score.color }}"
+            stroke-dasharray="{{ (health_score.score / 100) * 314.16 }} 314.16"
+          />
+        </svg>
+        <div class="hs-center">
+          <div class="hs-number" style="color:{{ health_score.color }};">{{ health_score.score }}</div>
+          <div class="hs-grade">{{ health_score.grade }}</div>
+        </div>
+      </div>
+      <div class="hs-label-bottom" style="color:{{ health_score.color }};">{{ health_score.label }}</div>
+      <div class="hs-breakdown">
+        <div class="hs-bar-row">
+          <span>Disease</span>
+          <div class="hs-mini-bar"><div style="width:{{ health_score.breakdown.disease }}%; background:#3b82f6;"></div></div>
+          <span>{{ health_score.breakdown.disease }}</span>
+        </div>
+        <div class="hs-bar-row">
+          <span>Lifestyle</span>
+          <div class="hs-mini-bar"><div style="width:{{ health_score.breakdown.lifestyle }}%; background:#8b5cf6;"></div></div>
+          <span>{{ health_score.breakdown.lifestyle }}</span>
+        </div>
+        <div class="hs-bar-row">
+          <span>Family</span>
+          <div class="hs-mini-bar"><div style="width:{{ health_score.breakdown.family }}%; background:#f59e0b;"></div></div>
+          <span>{{ health_score.breakdown.family }}</span>
         </div>
       </div>
     </div>
+    {% endif %}
 
-    <div class="summary-card summary-card--mri honesty-{{ prediction.honesty_flag }}">
-      <div class="sumcard-label">MRI Consistency</div>
-      <div class="sumcard-value">
-        {% if prediction.honesty_flag == 'trusted' %}
-          <span class="trust-badge trust-ok">✓ Consistent</span>
-        {% else %}
-          <span class="trust-badge trust-warn">⚠ Review Needed</span>
-        {% endif %}
+    <!-- Summary Cards -->
+    <div class="summary-strip summary-strip--inline">
+      <div class="summary-card summary-card--disease">
+        <div class="sumcard-label">Predicted Condition</div>
+        <div class="sumcard-value" style="font-size:18px;">{{ prediction.predicted_disease }}</div>
+        <div class="sumcard-sub">Based on your reported symptoms</div>
       </div>
-      <div class="sumcard-sub">
-        {% if prediction.mri_consistency == 'no_mri' %}No MRI uploaded
-        {% elif prediction.mri_consistency == 'consistent' %}MRI matches reported symptoms
-        {% else %}MRI does not match answers{% endif %}
+      <div class="summary-card summary-card--risk">
+        <div class="sumcard-label">Risk Level</div>
+        <div class="sumcard-value risk-badge risk-{{ prediction.risk_level }}">
+          {% if prediction.risk_level == 'high' %}⚠ High Risk
+          {% elif prediction.risk_level == 'medium' %}◈ Medium Risk
+          {% else %}✓ Low Risk{% endif %}
+        </div>
+        <div class="sumcard-sub">
+          {% if prediction.risk_level == 'high' %}Immediate consultation recommended
+          {% elif prediction.risk_level == 'medium' %}Monitor and follow suggestions
+          {% else %}Continue healthy habits{% endif %}
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="sumcard-label">Confidence Score</div>
+        <div class="sumcard-value">{{ prediction.confidence_score }}%</div>
+        <div class="confidence-bar-wrap">
+          <div class="confidence-bar">
+            <div class="confidence-fill" data-target="{{ prediction.confidence_score }}%" style="width:{{ prediction.confidence_score }}%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="summary-card honesty-{{ prediction.honesty_flag }}">
+        <div class="sumcard-label">MRI Consistency</div>
+        <div class="sumcard-value">
+          {% if prediction.honesty_flag == 'trusted' %}
+            <span class="trust-badge trust-ok">✓ Consistent</span>
+          {% else %}
+            <span class="trust-badge trust-warn">⚠ Review Needed</span>
+          {% endif %}
+        </div>
+        <div class="sumcard-sub">
+          {% if prediction.mri_consistency == 'no_mri' %}No MRI uploaded
+          {% elif prediction.mri_consistency == 'consistent' %}MRI matches symptoms
+          {% else %}MRI does not match answers{% endif %}
+        </div>
       </div>
     </div>
-
   </div>
 
-  <!-- ── MAIN GRID ─────────────────────────────────────── -->
+  <!-- ── TREND CHART (if >1 assessment) ─────────────────────── -->
+  {% if total_predictions > 1 %}
+  <div class="dash-card trend-card">
+    <div class="dash-card-header">
+      <span class="dash-card-icon">📈</span>
+      <div>
+        <h3>Health Score Trend</h3>
+        <p>Your wellness score across all {{ total_predictions }} assessments</p>
+      </div>
+    </div>
+    <div style="position:relative; height:200px;">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── AI HEALTH TIPS ──────────────────────────────────────── -->
+  {% if ai_tips and ai_tips.summary %}
+  <div class="ai-tips-section">
+    <div class="ai-tips-header">
+      <div class="ai-tips-badge">🤖 AI Health Intelligence</div>
+      <h2>Personalised Health Action Plan</h2>
+      <p class="ai-tips-summary">{{ ai_tips.summary }}</p>
+    </div>
+
+    <div class="ai-tips-grid">
+
+      <!-- DO -->
+      {% if ai_tips.do %}
+      <div class="tip-card tip-card--do">
+        <div class="tip-card-header">
+          <span class="tip-icon">✅</span>
+          <h3>What To DO</h3>
+        </div>
+        <ul class="tip-list">
+          {% for tip in ai_tips.do %}
+          <li class="tip-item">
+            <span class="tip-bullet tip-bullet--do">→</span>
+            <span>{{ tip }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- DON'T -->
+      {% if ai_tips.dont %}
+      <div class="tip-card tip-card--dont">
+        <div class="tip-card-header">
+          <span class="tip-icon">🚫</span>
+          <h3>What NOT To Do</h3>
+        </div>
+        <ul class="tip-list">
+          {% for tip in ai_tips.dont %}
+          <li class="tip-item">
+            <span class="tip-bullet tip-bullet--dont">✕</span>
+            <span>{{ tip }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- IMPROVE -->
+      {% if ai_tips.improve %}
+      <div class="tip-card tip-card--improve">
+        <div class="tip-card-header">
+          <span class="tip-icon">📈</span>
+          <h3>How To Improve</h3>
+        </div>
+        <ul class="tip-list">
+          {% for tip in ai_tips.improve %}
+          <li class="tip-item">
+            <span class="tip-bullet tip-bullet--improve">◆</span>
+            <span>{{ tip }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- DIET -->
+      {% if ai_tips.diet %}
+      <div class="tip-card tip-card--diet">
+        <div class="tip-card-header">
+          <span class="tip-icon">🥗</span>
+          <h3>Diet Recommendations</h3>
+        </div>
+        <ul class="tip-list">
+          {% for tip in ai_tips.diet %}
+          <li class="tip-item">
+            <span class="tip-bullet tip-bullet--diet">●</span>
+            <span>{{ tip }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- EXERCISE -->
+      {% if ai_tips.exercise %}
+      <div class="tip-card tip-card--exercise">
+        <div class="tip-card-header">
+          <span class="tip-icon">🏃</span>
+          <h3>Exercise Plan</h3>
+        </div>
+        <ul class="tip-list">
+          {% for tip in ai_tips.exercise %}
+          <li class="tip-item">
+            <span class="tip-bullet tip-bullet--exercise">▸</span>
+            <span>{{ tip }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── MAIN GRID ────────────────────────────────────────────── -->
   <div class="dash-grid">
 
     <!-- LEFT COLUMN -->
     <div class="dash-col">
-
-      <!-- Suggestions: Precautions -->
       <div class="dash-card">
         <div class="dash-card-header">
           <span class="dash-card-icon">🛡️</span>
@@ -82,14 +281,14 @@
         <ul class="suggestion-list">
           {% for item in suggestions.precautions %}
           <li class="suggestion-item suggestion-item--warn">
-            <span class="sug-icon">⚠</span>
-            <span>{{ item }}</span>
+            <span class="sug-icon">⚠</span><span>{{ item }}</span>
           </li>
+          {% else %}
+          <li style="color:var(--clr-text-3); font-size:13px; padding:12px;">No precautions available. Run an assessment first.</li>
           {% endfor %}
         </ul>
       </div>
 
-      <!-- Suggestions: Improvements -->
       <div class="dash-card">
         <div class="dash-card-header">
           <span class="dash-card-icon">📈</span>
@@ -101,20 +300,18 @@
         <ul class="suggestion-list">
           {% for item in suggestions.improvements %}
           <li class="suggestion-item suggestion-item--ok">
-            <span class="sug-icon">✓</span>
-            <span>{{ item }}</span>
+            <span class="sug-icon">✓</span><span>{{ item }}</span>
           </li>
           {% endfor %}
         </ul>
       </div>
-
     </div>
 
     <!-- RIGHT COLUMN -->
     <div class="dash-col">
 
-      <!-- MRI Validation Detail -->
-      <div class="dash-card dash-card--mri {% if prediction.honesty_flag == 'review_needed' %}dash-card--alert{% endif %}">
+      <!-- MRI Consistency -->
+      <div class="dash-card {% if prediction.honesty_flag == 'review_needed' %}dash-card--alert{% endif %}">
         <div class="dash-card-header">
           <span class="dash-card-icon">🔬</span>
           <div>
@@ -122,38 +319,24 @@
             <p>Cross-referencing your answers with uploaded scan</p>
           </div>
         </div>
-
         <div class="mri-result-block">
           {% if prediction.mri_consistency == 'no_mri' %}
           <div class="mri-status mri-neutral">
             <span class="mri-status-icon">📋</span>
-            <div>
-              <strong>No MRI Uploaded</strong>
-              <p>Prediction is based on your questionnaire answers only.
-                 Uploading an MRI allows us to verify consistency.</p>
-            </div>
+            <div><strong>No MRI Uploaded</strong><p>Prediction based on questionnaire only.</p></div>
           </div>
           {% elif prediction.mri_consistency == 'consistent' %}
           <div class="mri-status mri-ok">
             <span class="mri-status-icon">✓</span>
-            <div>
-              <strong>Answers are Consistent</strong>
-              <p>Your MRI upload aligns with your reported symptoms.
-                 Your answers appear reliable.</p>
-            </div>
+            <div><strong>Answers are Consistent</strong><p>Your MRI aligns with reported symptoms.</p></div>
           </div>
           {% else %}
           <div class="mri-status mri-warn">
             <span class="mri-status-icon">⚠</span>
-            <div>
-              <strong>Inconsistency Detected</strong>
-              <p>Your MRI upload does not align with your reported symptoms.
-                 We recommend a manual review by a healthcare professional.</p>
-            </div>
+            <div><strong>Inconsistency Detected</strong><p>MRI does not align with symptoms. Review recommended.</p></div>
           </div>
           {% endif %}
         </div>
-
         <div class="mri-checks">
           <div class="mri-check-row">
             <span class="mri-chk-label">File uploaded</span>
@@ -162,20 +345,9 @@
             </span>
           </div>
           <div class="mri-check-row">
-            <span class="mri-chk-label">Image is valid</span>
-            <span class="mri-chk-val {% if prediction.mri_consistency != 'no_mri' %}val-ok{% else %}val-no{% endif %}">
-              {% if prediction.mri_consistency != 'no_mri' %}Yes{% else %}—{% endif %}
-            </span>
-          </div>
-          <div class="mri-check-row">
             <span class="mri-chk-label">Matches symptoms</span>
-            <span class="mri-chk-val
-              {% if prediction.mri_consistency == 'consistent' %}val-ok
-              {% elif prediction.mri_consistency == 'inconsistent' %}val-warn
-              {% else %}val-no{% endif %}">
-              {% if prediction.mri_consistency == 'consistent' %}Yes
-              {% elif prediction.mri_consistency == 'inconsistent' %}No ⚠
-              {% else %}—{% endif %}
+            <span class="mri-chk-val {% if prediction.mri_consistency == 'consistent' %}val-ok{% elif prediction.mri_consistency == 'inconsistent' %}val-warn{% else %}val-no{% endif %}">
+              {% if prediction.mri_consistency == 'consistent' %}Yes{% elif prediction.mri_consistency == 'inconsistent' %}No ⚠{% else %}—{% endif %}
             </span>
           </div>
           <div class="mri-check-row">
@@ -191,42 +363,238 @@
       <div class="dash-card dash-card--cta">
         <div class="cta-icon">🛡️</div>
         <h3>Get Insurance Recommendation</h3>
-        <p>
-          Based on your <strong>{{ prediction.risk_level }} risk</strong> prediction,
-          we have matched you with the most suitable health insurance plan.
-        </p>
-        <a href="/insurance/plans?prediction_id={{ prediction.id }}" class="btn-primary btn-full">
-          View Insurance Plans &rarr;
-        </a>
+        <p>Based on your <strong>{{ prediction.risk_level }} risk</strong> prediction, we matched the best health insurance plan.</p>
+        <a href="/insurance/plans?prediction_id={{ prediction.id }}" class="btn-primary btn-full">View Insurance Plans &rarr;</a>
+        <a href="/price/form" class="btn-outline btn-full" style="margin-top:8px;">💰 Calculate Premium Price</a>
       </div>
 
       <!-- Disclaimer -->
       <div class="dash-card dash-card--disclaimer">
         <div class="disclaimer-icon">⚕</div>
-        <p>
-          <strong>Medical Disclaimer:</strong> This prediction is generated by an AI model
-          trained on limited data. It is for <strong>educational purposes only</strong> and
-          must not replace a professional medical diagnosis. Always consult a licensed doctor.
-        </p>
+        <p><strong>Medical Disclaimer:</strong> This prediction is generated by an AI ensemble model for <strong>educational purposes only</strong>. Always consult a licensed doctor for medical diagnosis.</p>
       </div>
 
     </div>
-
   </div>
 
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  // Animate confidence bar on load
-  window.addEventListener('load', () => {
-    const fill = document.querySelector('.confidence-fill');
+  /* Confidence bar — single clean trigger */
+  document.addEventListener('DOMContentLoaded', () => {
+    animateConfidenceBar();
+  });
+
+  /* Health Score gauge SVG animation */
+  document.addEventListener('DOMContentLoaded', () => {
+    const fill = document.querySelector('.hs-fill');
     if (fill) {
-      const target = fill.style.width;
-      fill.style.width = '0%';
-      setTimeout(() => { fill.style.width = target; }, 300);
+      const target = parseFloat(fill.getAttribute('stroke-dasharray'));
+      fill.setAttribute('stroke-dasharray', `0 314.16`);
+      setTimeout(() => {
+        fill.style.transition = 'stroke-dasharray 1.4s cubic-bezier(0.4,0,0.2,1)';
+        fill.setAttribute('stroke-dasharray', `${target} 314.16`);
+      }, 400);
     }
   });
+
+  /* Trend Chart — fetches from /patient/api/trend */
+  {% if total_predictions > 1 %}
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const resp = await fetch('/patient/api/trend');
+      const data = await resp.json();
+
+      const ctx = document.getElementById('trendChart');
+      if (!ctx || !data.labels || data.labels.length === 0) return;
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [
+            {
+              label: 'Health Score',
+              data: data.scores,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59,130,246,0.08)',
+              pointBackgroundColor: '#3b82f6',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              borderWidth: 2.5,
+              tension: 0.4,
+              fill: true,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#93c5fd',
+              bodyColor: '#e2e8f0',
+              callbacks: {
+                title: (items) => `Assessment: ${items[0].label}`,
+                afterBody: (items) => {
+                  const i = items[0].dataIndex;
+                  return data.diseases ? [`Condition: ${data.diseases[i]}`] : [];
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: 0, max: 100,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#64748b', font: { size: 11 } },
+              title: { display: true, text: 'Health Score', color: '#64748b', font: { size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    } catch(e) {
+      console.warn('Trend chart failed:', e);
+    }
+  });
+  {% endif %}
 </script>
+
+<style>
+/* ── Doctor Alert Banner ──────────────────────────────── */
+.doctor-alert-banner {
+  display: flex; align-items: flex-start; gap: 16px;
+  background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));
+  border: 1px solid rgba(239,68,68,0.4); border-radius: var(--radius-xl);
+  padding: 24px; margin-bottom: 24px;
+}
+.doctor-alert-icon { font-size: 32px; flex-shrink: 0; margin-top: 2px; }
+.doctor-alert-body { flex: 1; }
+.doctor-alert-body strong { font-size: 16px; color: #f87171; font-weight: 700; }
+.doctor-alert-body p { font-size: 13px; color: var(--clr-text-2); margin: 6px 0 0; line-height: 1.6; }
+.btn-alert-primary {
+  padding: 9px 18px; background: #ef4444; color: #fff; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.2s;
+}
+.btn-alert-primary:hover { background: #dc2626; }
+.btn-alert-whatsapp {
+  padding: 9px 18px; background: #25d366; color: #fff; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-alert-pdf {
+  padding: 9px 18px; background: rgba(255,255,255,0.08); color: var(--clr-text-1);
+  border: 1px solid var(--clr-border); border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 600; text-decoration: none;
+}
+
+/* ── Hero Strip ───────────────────────────────────────── */
+.hero-strip {
+  display: flex; gap: 20px; margin-bottom: 24px; align-items: flex-start;
+  flex-wrap: wrap;
+}
+.summary-strip--inline {
+  flex: 1; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 0 !important;
+}
+
+/* ── Health Score Gauge ───────────────────────────────── */
+.health-score-card {
+  background: var(--clr-surface); border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xl); padding: 20px 24px;
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 200px; flex-shrink: 0;
+}
+.hs-label { font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--clr-text-3); margin-bottom: 12px; }
+.hs-gauge-wrap { position: relative; width: 120px; height: 120px; margin-bottom: 10px; }
+.hs-gauge { width: 120px; height: 120px; transform: rotate(-90deg); }
+.hs-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
+.hs-fill   { fill: none; stroke-width: 10; stroke-linecap: round;
+  transition: stroke-dasharray 1.4s cubic-bezier(0.4,0,0.2,1); }
+.hs-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  text-align: center;
+}
+.hs-number { font-family: var(--font-display); font-size: 28px; font-weight: 700; line-height: 1; }
+.hs-grade  { font-size: 13px; font-weight: 600; color: var(--clr-text-3); margin-top: 2px; }
+.hs-label-bottom { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.hs-breakdown { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+.hs-bar-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--clr-text-3);
+}
+.hs-bar-row span:first-child { width: 50px; flex-shrink: 0; }
+.hs-bar-row span:last-child  { width: 24px; text-align: right; flex-shrink: 0; }
+.hs-mini-bar {
+  flex: 1; height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden;
+}
+.hs-mini-bar div { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+/* ── Trend Card ───────────────────────────────────────── */
+.trend-card { margin-bottom: 24px; }
+
+/* ── AI Tips Section ─────────────────────────────────── */
+.ai-tips-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  border-radius: var(--radius-xl); padding: 36px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(59,130,246,0.3);
+}
+.ai-tips-badge {
+  display: inline-block; padding: 4px 14px;
+  background: rgba(59,130,246,0.2); color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.3); border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+.ai-tips-header h2 {
+  font-family: var(--font-display); font-size: 26px;
+  color: #fff; margin-bottom: 10px;
+}
+.ai-tips-summary {
+  font-size: 14px; color: rgba(255,255,255,0.7);
+  line-height: 1.7; margin-bottom: 28px;
+  max-width: 800px;
+}
+.ai-tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.tip-card {
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+}
+.tip-card--do      { border-color: rgba(16,185,129,0.4); }
+.tip-card--dont    { border-color: rgba(239,68,68,0.4); }
+.tip-card--improve { border-color: rgba(168,85,247,0.4); }
+.tip-card--diet    { border-color: rgba(234,179,8,0.4); }
+.tip-card--exercise { border-color: rgba(59,130,246,0.4); }
+.tip-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.tip-icon { font-size: 20px; }
+.tip-card-header h3 { font-size: 14px; font-weight: 700; color: #fff; }
+.tip-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.tip-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; }
+.tip-bullet { font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.tip-bullet--do      { color: #34d399; }
+.tip-bullet--dont    { color: #f87171; }
+.tip-bullet--improve { color: #c084fc; }
+.tip-bullet--diet    { color: #fbbf24; }
+.tip-bullet--exercise { color: #60a5fa; }
+</style>
 {% endblock %}

@@ -286,10 +286,14 @@
           Calculate
         </button>
       </div>
-      <div id="bmi_result" style="margin-top: 12px; font-size: 14px; color: var(--clr-primary); display: none;">
-        Your BMI: <strong id="bmi_val"></strong> — <span id="bmi_category"></span>
-        <button type="button" onclick="fillBMI()" style="margin-left: 12px; font-size: 12px; color: var(--clr-primary); text-decoration: underline; background: none; border: none; cursor: pointer;">
-          Use this value →
+      <div id="bmi_result" style="margin-top:12px;">
+        <div id="bmi_badge" style="border:1px solid var(--clr-border); border-radius:10px; padding:8px 16px; display:inline-flex; align-items:center; gap:8px; font-weight:700;">
+          BMI: <span id="bmi_val"></span> <span id="bmi_category" style="font-weight:400;"></span>
+          <span id="bmi_autofilled">✓ Auto-filled</span>
+        </div>
+        <div class="bmi-meter"><div id="bmi_meter_fill"></div></div>
+        <button type="button" onclick="fillBMI()" style="margin-top:6px; font-size:12px; color:var(--clr-primary); text-decoration:underline; background:none; border:none; cursor:pointer;">
+          ↑ Use this BMI value in the form →
         </button>
       </div>
     </div>
@@ -309,25 +313,71 @@
 
 {% block extra_scripts %}
 <script>
+/* ── REAL-TIME BMI CALCULATOR ─────────────────────────────────────────
+   Calculates BMI live as user types — no button needed.
+   Explain in viva: "Real-time BMI calculation reduces form errors since
+   patients know height/weight but not BMI. Pattern improves data quality."
+*/
 let calcBMIValue = null;
 
-function calcBMI() {
+function updateBMI() {
   const h = parseFloat(document.getElementById('calc_height').value);
   const w = parseFloat(document.getElementById('calc_weight').value);
-  if (!h || !w || h < 50 || w < 10) { alert('Please enter valid height and weight.'); return; }
-  const bmi = (w / ((h/100) ** 2)).toFixed(1);
+  if (!h || !w || h < 100 || h > 250 || w < 20 || w > 300) {
+    document.getElementById('bmi_result').style.display = 'none';
+    return;
+  }
+  const bmi = (w / ((h / 100) ** 2)).toFixed(1);
   calcBMIValue = bmi;
-  const div = document.getElementById('bmi_result');
-  document.getElementById('bmi_val').textContent = bmi;
-  let cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal weight' : bmi < 30 ? 'Overweight' : 'Obese';
-  document.getElementById('bmi_category').textContent = cat;
-  div.style.display = 'block';
+  const categories = [
+    { max: 18.5, label: 'Underweight',   color: '#3b82f6' },
+    { max: 25.0, label: 'Normal Weight', color: '#10b981' },
+    { max: 30.0, label: 'Overweight',    color: '#f59e0b' },
+    { max: 999,  label: 'Obese',         color: '#ef4444' },
+  ];
+  const cat = categories.find(c => bmi < c.max);
+  document.getElementById('bmi_val').textContent      = bmi;
+  document.getElementById('bmi_category').textContent = '— ' + cat.label;
+  const badge = document.getElementById('bmi_badge');
+  badge.style.background  = cat.color + '20';
+  badge.style.borderColor = cat.color;
+  badge.style.color       = cat.color;
+  const pct = Math.min((bmi / 40) * 100, 100);
+  const fill = document.getElementById('bmi_meter_fill');
+  if (fill) { fill.style.width = pct + '%'; fill.style.background = cat.color; }
+  document.getElementById('bmi_result').style.display = 'flex';
 }
 
 function fillBMI() {
   if (calcBMIValue) {
     document.querySelector('input[name="bmi"]').value = calcBMIValue;
+    const tag = document.getElementById('bmi_autofilled');
+    if (tag) tag.style.display = 'inline';
   }
 }
+
+function calcBMI() { updateBMI(); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const hI = document.getElementById('calc_height');
+  const wI = document.getElementById('calc_weight');
+  if (hI) hI.addEventListener('input', updateBMI);
+  if (wI) wI.addEventListener('input', updateBMI);
+});
 </script>
-{% endblock %}
+<style>
+#bmi_result {
+  display:none; flex-direction:column; gap:8px;
+  margin-top:14px; animation: fadeInUp 0.3s ease;
+}
+#bmi_badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 16px; border-radius:10px; border:1px solid;
+  font-size:14px; font-weight:700; transition:all 0.3s;
+}
+.bmi-meter { height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; margin-top:4px; }
+#bmi_meter_fill { height:100%; border-radius:4px; width:0; transition:width 0.5s, background 0.3s; }
+#bmi_autofilled { display:none; font-size:11px; color:#10b981; font-weight:600; margin-left:8px; }
+@keyframes fadeInUp { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+</style>
+{% endblock %}

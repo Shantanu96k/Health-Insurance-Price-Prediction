@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}" />
+  <!-- Chart.js for trend & analytics charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -32,9 +34,13 @@
       <a href="/price/form" class="nav-link {% if request.url.path.startswith('/price') %}active{% endif %}">
         💰 Price Calc
       </a>
+      <a href="/patient/settings" class="nav-link {% if request.url.path == '/patient/settings' %}active{% endif %}" title="Account Settings">
+        ⚙️ Settings
+      </a>
       <div class="nav-divider"></div>
       <span class="nav-user">{{ request.session.get('patient_name', 'Patient') }}</span>
       <a href="/auth/logout" class="btn-ghost-sm">Logout</a>
+      <a href="/admin/login" class="btn-ghost-sm" style="font-size: 12px; border: 1px solid var(--clr-border);">Admin</a>
     </div>
     {% else %}
     <div class="nav-links">

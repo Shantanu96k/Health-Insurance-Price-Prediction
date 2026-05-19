@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="form-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Account Settings</h1>
+      <p class="page-subtitle">Manage your profile, preferences, and account security.</p>
+    </div>
+    <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
+  </div>
+
+  <!-- Settings tabs -->
+  <div class="settings-tabs">
+    <button class="settings-tab active" onclick="showTab('profile')">👤 Profile</button>
+    <button class="settings-tab" onclick="showTab('health')">🩺 Health Info</button>
+    <button class="settings-tab" onclick="showTab('preferences')">⚙️ Preferences</button>
+    <button class="settings-tab" onclick="showTab('danger')">🗑️ Delete Account</button>
+  </div>
+
+  <!-- ── PROFILE TAB ─────────────────────────────────── -->
+  <div class="settings-panel" id="tab-profile">
+    <form action="/patient/settings" method="POST" class="auth-form">
+      <div class="form-card">
+        <div class="card-header">
+          <span class="card-icon">👤</span>
+          <div>
+            <h3>Personal Information</h3>
+            <p>Update your basic details. Email cannot be changed for security reasons.</p>
+          </div>
+        </div>
+
+        <!-- Avatar display -->
+        <div class="avatar-block">
+          <div class="avatar-circle">{{ patient.full_name[0] | upper if patient.full_name else 'P' }}</div>
+          <div>
+            <div class="avatar-name">{{ patient.full_name | default('Patient') }}</div>
+            <div class="avatar-email">{{ patient.email | default('') }}</div>
+            <div class="avatar-since" style="font-size:11px; color:var(--clr-text-3); margin-top:2px;">
+              Member since {{ patient.created_at[:10] if patient.created_at else 'recently' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Full Name</label>
+            <input type="text" name="full_name" class="field-input"
+                   value="{{ patient.full_name | default('') }}" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Age</label>
+            <input type="number" name="age" class="field-input"
+                   value="{{ patient.age | default('') }}" min="1" max="120" required />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Gender</label>
+          <div class="radio-row">
+            {% for g in ['male', 'female', 'other'] %}
+            <label class="radio-opt">
+              <input type="radio" name="gender" value="{{ g }}"
+                {% if patient.gender == g %}checked{% endif %} required />
+              <span class="radio-box">{{ g | title }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Phone Number</label>
+            <input type="tel" name="phone" class="field-input"
+                   value="{{ patient.phone | default('') }}"
+                   placeholder="+91 98765 43210" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">City</label>
+            <input type="text" name="city" class="field-input"
+                   value="{{ patient.city | default('') }}"
+                   placeholder="e.g. Nagpur" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Blood Group</label>
+            <select name="blood_group" class="field-input">
+              <option value="">— Select —</option>
+              {% for bg in ['A+','A-','B+','B-','O+','O-','AB+','AB-'] %}
+              <option value="{{ bg }}" {% if patient.blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Emergency Contact</label>
+            <input type="tel" name="emergency_contact" class="field-input"
+                   value="{{ patient.emergency_contact | default('') }}"
+                   placeholder="+91 98765 43210" />
+          </div>
+        </div>
+
+        <div class="field-group" style="display:none;">
+          <input type="checkbox" name="notifications_email" 
+                 {% if patient.notifications_email %}checked{% endif %} />
+        </div>
+
+      </div>
+
+      <div class="form-nav" style="justify-content:flex-end;">
+        <button type="submit" class="btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── HEALTH INFO TAB ─────────────────────────────── -->
+  <div class="settings-panel hidden" id="tab-health">
+    <div class="form-card">
+      <div class="card-header">
+        <span class="card-icon">🩺</span>
+        <div>
+          <h3>Your Health Summary</h3>
+          <p>Based on your latest health assessment</p>
+        </div>
+      </div>
+
+      <div class="info-note" style="margin-bottom:20px;">
+        <span class="info-icon">ℹ</span>
+        <span>This section shows a summary of your health data from assessments. 
+        To update health information, take a new assessment.</span>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div style="padding:20px; background:var(--clr-surface-2); border-radius:var(--radius-md);">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-text-3); text-transform:uppercase; margin-bottom:8px;">Account Email</div>
+          <div style="font-size:15px; font-weight:600; color:var(--clr-text);">{{ patient.email | default('—') }}</div>
+          <div style="font-size:11px; color:var(--clr-text-3); margin-top:4px;">Email cannot be changed</div>
+        </div>
+        <div style="padding:20px; background:var(--clr-surface-2); border-radius:var(--radius-md);">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-text-3); text-transform:uppercase; margin-bottom:8px;">Blood Group</div>
+          <div style="font-size:22px; font-weight:700; color:var(--clr-primary);">{{ patient.blood_group | default('Not set') }}</div>
+        </div>
+        <div style="padding:20px; background:var(--clr-surface-2); border-radius:var(--radius-md);">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-text-3); text-transform:uppercase; margin-bottom:8px;">Emergency Contact</div>
+          <div style="font-size:15px; font-weight:600;">{{ patient.emergency_contact | default('Not set') }}</div>
+        </div>
+        <div style="padding:20px; background:var(--clr-surface-2); border-radius:var(--radius-md);">
+          <div style="font-size:12px; font-weight:700; color:var(--clr-text-3); text-transform:uppercase; margin-bottom:8px;">City</div>
+          <div style="font-size:15px; font-weight:600;">{{ patient.city | default('Not set') }}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <a href="/patient/history" class="btn-outline">View Prediction History →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PREFERENCES TAB ────────────────────────────── -->
+  <div class="settings-panel hidden" id="tab-preferences">
+    <div class="form-card">
+      <div class="card-header">
+        <span class="card-icon">⚙️</span>
+        <div>
+          <h3>Preferences</h3>
+          <p>Customize your MedPredict experience</p>
+        </div>
+      </div>
+
+      <div class="lifestyle-grid">
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">📧</span>
+            <div>
+              <strong>Email Notifications</strong>
+              <small>Receive health tips and reminders via email</small>
+            </div>
+          </div>
+          <div>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="notif_toggle" 
+                {% if patient.notifications_email %}checked{% endif %}
+                onchange="savePreference('notifications_email', this.checked)"
+                style="width:18px; height:18px; cursor:pointer;" />
+              <span style="font-size:13px; font-weight:600;">
+                {% if patient.notifications_email %}Enabled{% else %}Disabled{% endif %}
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">🔒</span>
+            <div>
+              <strong>Data Privacy</strong>
+              <small>Your data is encrypted and never shared with third parties</small>
+            </div>
+          </div>
+          <span style="font-size:13px; font-weight:700; color:var(--clr-success);">✓ Protected</span>
+        </div>
+
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">🤖</span>
+            <div>
+              <strong>AI Health Tips</strong>
+              <small>Personalised tips generated after each assessment</small>
+            </div>
+          </div>
+          <span style="font-size:13px; font-weight:700; color:var(--clr-success);">✓ Always On</span>
+        </div>
+
+        <div class="lifestyle-row">
+          <div class="lifestyle-label">
+            <span class="lf-icon">📊</span>
+            <div>
+              <strong>Assessment Reminders</strong>
+              <small>Recommended: reassess every 3 months</small>
+            </div>
+          </div>
+          <a href="/patient/form" class="btn-outline" style="padding:8px 16px; font-size:13px;">Take Assessment</a>
+        </div>
+      </div>
+
+      <!-- Quick links -->
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--clr-border);">
+        <div style="font-size:13px; font-weight:700; color:var(--clr-text-2); margin-bottom:12px;">Quick Links</div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+          <a href="/patient/history" class="btn-outline" style="font-size:13px; padding:8px 16px;">📋 View History</a>
+          <a href="/insurance/plans" class="btn-outline" style="font-size:13px; padding:8px 16px;">🛡️ Insurance Plans</a>
+          <a href="/price/form" class="btn-outline" style="font-size:13px; padding:8px 16px;">💰 Price Calculator</a>
+          <a href="/docs" class="btn-outline" style="font-size:13px; padding:8px 16px;" target="_blank">📄 API Docs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DANGER ZONE TAB ────────────────────────────── -->
+  <div class="settings-panel hidden" id="tab-danger">
+    <div class="form-card" style="border-color:var(--clr-danger);">
+      <div class="card-header">
+        <span class="card-icon">⚠️</span>
+        <div>
+          <h3 style="color:var(--clr-danger);">Danger Zone</h3>
+          <p>These actions are irreversible. Proceed with caution.</p>
+        </div>
+      </div>
+
+      <div style="background:var(--clr-danger-light); border:1px solid var(--clr-danger); border-radius:var(--radius-md); padding:20px; margin-bottom:24px;">
+        <h4 style="color:var(--clr-danger); margin-bottom:8px;">⚠ Delete Your Account</h4>
+        <p style="font-size:13px; color:var(--clr-text-2); margin-bottom:0;">
+          This will permanently delete your account, all health assessments, predictions, 
+          and insurance recommendations. <strong>This cannot be undone.</strong>
+        </p>
+      </div>
+
+      <form action="/patient/delete-account" method="POST" id="deleteForm"
+            onsubmit="return confirmDelete()">
+        <div class="field-group">
+          <label class="field-label" style="color:var(--clr-danger);">
+            Type <strong>DELETE</strong> to confirm
+          </label>
+          <input type="text" name="confirm_delete" class="field-input"
+                 placeholder="Type DELETE here" style="border-color:var(--clr-danger);" />
+        </div>
+        <button type="submit" class="btn-primary" 
+                style="background:var(--clr-danger); border-color:var(--clr-danger); margin-top:16px;">
+          Delete My Account Permanently
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function showTab(tab) {
+    document.querySelectorAll('.settings-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    event.target.classList.add('active');
+  }
+
+  function confirmDelete() {
+    const val = document.querySelector('input[name="confirm_delete"]').value;
+    if (val !== 'DELETE') {
+      alert('Please type DELETE exactly to confirm.'); return false;
+    }
+    return confirm('Are you absolutely sure? This cannot be undone.');
+  }
+
+  function savePreference(key, value) {
+    // In a full implementation, this would call an API endpoint
+    console.log('Preference:', key, value);
+  }
+</script>
+
+<style>
+.settings-tabs {
+  display: flex; gap: 4px; margin-bottom: 24px;
+  background: var(--clr-surface); border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md); padding: 6px; flex-wrap: wrap;
+}
+.settings-tab {
+  padding: 8px 18px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; color: var(--clr-text-2);
+  cursor: pointer; transition: all 0.15s; border: none; background: none;
+  font-family: inherit;
+}
+.settings-tab:hover { background: var(--clr-surface-2); color: var(--clr-text); }
+.settings-tab.active { background: var(--clr-primary); color: #fff; }
+
+.avatar-block {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px; background: var(--clr-primary-light);
+  border-radius: var(--radius-md); margin-bottom: 20px;
+}
+.avatar-circle {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--clr-primary); color: #fff;
+  font-size: 22px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.avatar-name { font-size: 16px; font-weight: 700; color: var(--clr-text); }
+.avatar-email { font-size: 13px; color: var(--clr-text-2); margin-top: 2px; }
+</style>
+{% endblock %}
