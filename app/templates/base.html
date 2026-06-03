@@ -7,16 +7,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}" />
-  <!-- Chart.js for trend & analytics charts -->
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-  <!-- ── NAV ─────────────────────────────────────────────── -->
+  
   <nav class="navbar">
     <a href="/" class="nav-brand">
-      <span class="brand-icon">✦</span>
       <span class="brand-text">MedPredict</span>
     </a>
 
@@ -31,8 +30,11 @@
       <a href="/insurance/plans" class="nav-link {% if request.url.path == '/insurance/plans' %}active{% endif %}">
         Insurance Plans
       </a>
-      <a href="/price/form" class="nav-link {% if request.url.path.startswith('/price') %}active{% endif %}">
+      <a href="/price/form" class="nav-link {% if request.url.path.startswith('/price') and request.url.path != '/price/history' %}active{% endif %}">
         💰 Price Calc
+      </a>
+      <a href="/price/history" class="nav-link {% if request.url.path == '/price/history' %}active{% endif %}">
+        💹 Price History
       </a>
       <a href="/patient/settings" class="nav-link {% if request.url.path == '/patient/settings' %}active{% endif %}" title="Account Settings">
         ⚙️ Settings
@@ -51,7 +53,7 @@
     {% endif %}
   </nav>
 
-  <!-- ── FLASH MESSAGES ────────────────────────────────── -->
+  
   {% if messages %}
   <div class="flash-container">
     {% for category, message in messages %}
@@ -66,15 +68,14 @@
   </div>
   {% endif %}
 
-  <!-- ── MAIN CONTENT ──────────────────────────────────── -->
+  
   <main class="main-content">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  
   <footer class="footer">
     <div class="footer-inner">
-      <span class="brand-icon">✦</span>
       <span>MedPredict v2.0 — AI Health Intelligence &nbsp;|&nbsp; MCA Major Project</span>
       <span class="footer-note">Not a substitute for professional medical advice.</span>
     </div>

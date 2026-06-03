@@ -12,7 +12,7 @@
     </p>
   </div>
 
-  <!-- Step progress indicator -->
+  
   <div class="step-indicator">
     <div class="step-item active" id="step-ind-1">
       <div class="step-circle">1</div>
@@ -35,11 +35,11 @@
     </div>
   </div>
 
-  <!-- FORM — FIX: removed onclick from submit button, use form submit event instead -->
+  
   <form action="/patient/submit-form" method="POST" enctype="multipart/form-data" id="healthForm">
     <input type="hidden" name="patient_id" value="{{ patient_id }}" />
 
-    <!-- ── STEP 1: SYMPTOMS ──────────────────────────────── -->
+    
     <div class="form-step" id="step-1">
       <div class="form-card">
         <div class="card-header">
@@ -134,7 +134,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 2: LIFESTYLE ──────────────────────────────── -->
+    
     <div class="form-step hidden" id="step-2">
       <div class="form-card">
         <div class="card-header">
@@ -268,7 +268,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 3: FAMILY HISTORY ──────────────────────── -->
+    
     <div class="form-step hidden" id="step-3">
       <div class="form-card">
         <div class="card-header">
@@ -328,7 +328,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 4: MRI UPLOAD ────────────────────────────── -->
+    
     <div class="form-step hidden" id="step-4">
       <div class="form-card">
         <div class="card-header">
@@ -364,7 +364,7 @@
         </div>
       </div>
 
-      <!-- Processing overlay -->
+      
       <div class="processing-overlay hidden" id="processingOverlay">
         <div class="processing-box">
           <div class="processing-spinner"></div>
@@ -381,7 +381,7 @@
 
       <div class="form-nav">
         <button type="button" class="btn-outline" onclick="prevStep(4)">&larr; Back</button>
-        <!-- FIX: type="submit" with NO onclick handler that disables the button before submit -->
+        
         <button type="submit" class="btn-submit" id="submitBtn">
           <span class="submit-icon">🧠</span>
           <span class="btn-text">Run Prediction</span>

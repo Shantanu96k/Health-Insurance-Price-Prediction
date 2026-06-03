@@ -1,21 +1,7 @@
-# app/utils/suggestion_engine.py
-"""
-Suggestion Engine
-==================
-Rule-based health advice generator.
+                                
+   
 
-Returns precautions and improvement tips based on the predicted disease.
-
-Why rule-based (not AI)?
-  Simple, explainable, fast, and 100% deterministic.
-  Perfect for a college project where you need to explain every output.
-
-Easy to explain in viva:
-  "Each disease maps to a list of medically reviewed precautions
-   and improvements. We look up the disease and return the matching advice."
-"""
-
-# ── Advice database ───────────────────────────────────────────────────
+                                                                        
 _ADVICE = {
 
     "Heart Disease": {
@@ -134,7 +120,7 @@ _ADVICE = {
     },
 }
 
-# ── Default fallback ───────────────────────────────────────────────────
+                                                                         
 _DEFAULT = {
     "precautions": [
         "Consult a licensed doctor for a proper diagnosis.",
@@ -150,13 +136,5 @@ _DEFAULT = {
 
 
 def get_suggestions(disease: str) -> dict:
-    """
-    Return precautions and improvements for a given disease.
-
-    Args:
-        disease: string name of the predicted disease
-
-    Returns:
-        {"precautions": [...], "improvements": [...]}
-    """
+       
     return _ADVICE.get(disease, _DEFAULT)

@@ -12,7 +12,7 @@
     <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
   </div>
 
-  <!-- Info banner -->
+  
   <div class="info-note" style="margin-bottom: 24px;">
     <span class="info-icon">🤖</span>
     <span>Our <strong>Gradient Boosting ML model</strong> predicts your premium based on age, BMI, 
@@ -22,7 +22,7 @@
   <form action="/price/calculate" method="POST" id="priceForm">
     <input type="hidden" name="patient_id" value="{{ patient_id }}" />
 
-    <!-- Section 1: Demographics -->
+    
     <div class="form-card" style="margin-bottom: 20px;">
       <div class="card-header">
         <span class="card-icon">👤</span>
@@ -34,7 +34,7 @@
 
       <div class="lifestyle-grid">
 
-        <!-- Age + BMI side by side -->
+        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="field-group">
             <label class="field-label">Age</label>
@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <!-- Sex -->
+        
         <div class="lifestyle-row">
           <div class="lifestyle-label">
             <span class="lf-icon">⚧</span>
@@ -77,7 +77,7 @@
           </div>
         </div>
 
-        <!-- Children -->
+        
         <div class="lifestyle-row">
           <div class="lifestyle-label">
             <span class="lf-icon">👨‍👩‍👧</span>
@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <!-- Region -->
+        
         <div class="lifestyle-row">
           <div class="lifestyle-label">
             <span class="lf-icon">🗺️</span>
@@ -123,7 +123,7 @@
       </div>
     </div>
 
-    <!-- Section 2: Lifestyle -->
+    
     <div class="form-card" style="margin-bottom: 20px;">
       <div class="card-header">
         <span class="card-icon">🏃</span>
@@ -196,7 +196,7 @@
       </div>
     </div>
 
-    <!-- Section 3: Pre-existing conditions -->
+    
     <div class="form-card" style="margin-bottom: 20px;">
       <div class="card-header">
         <span class="card-icon">🩺</span>
@@ -264,7 +264,7 @@
       </div>
     </div>
 
-    <!-- BMI Calculator helper -->
+    
     <div class="form-card" style="margin-bottom: 20px; background: var(--clr-primary-light); border-color: var(--clr-primary);">
       <div class="card-header" style="border-bottom-color: rgba(26,86,219,0.2);">
         <span class="card-icon">🧮</span>
@@ -298,7 +298,7 @@
       </div>
     </div>
 
-    <!-- Submit -->
+    
     <div class="form-nav">
       <a href="/patient/dashboard" class="btn-outline">&larr; Back</a>
       <button type="submit" class="btn-submit">
@@ -380,4 +380,4 @@ document.addEventListener('DOMContentLoaded', () => {
 #bmi_autofilled { display:none; font-size:11px; color:#10b981; font-weight:600; margin-left:8px; }
 @keyframes fadeInUp { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
 </style>
-{% endblock %}
+{% endblock %}

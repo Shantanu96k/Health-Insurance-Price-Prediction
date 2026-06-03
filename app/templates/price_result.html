@@ -7,7 +7,6 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Premium Estimate</h1>
-      <p class="page-subtitle">Calculated by our Gradient Boosting ML model</p>
     </div>
     <div style="display: flex; gap: 12px;">
       <a href="/price/form" class="btn-outline">Recalculate</a>
@@ -15,7 +14,7 @@
     </div>
   </div>
 
-  <!-- Big price display -->
+  
   <div style="background: linear-gradient(135deg, #0f2e6e, #1a56db); border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 28px; color: #fff;">
     <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 12px;">
       Estimated Annual Premium
@@ -31,24 +30,10 @@
     </div>
   </div>
 
-  <!-- AI Explanation -->
-  {% if result.explanation %}
-  <div style="background: var(--clr-info-light); border: 1px solid var(--clr-info); border-radius: 12px; padding: 20px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start;">
-    <span style="font-size: 24px;">🤖</span>
-    <div>
-      <div style="font-size: 12px; font-weight: 700; color: var(--clr-info); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
-        AI Explanation (Gemini)
-      </div>
-      <p style="font-size: 14px; color: var(--clr-text); line-height: 1.6; margin: 0;">
-        {{ result.explanation }}
-      </p>
-    </div>
-  </div>
-  {% endif %}
 
   <div class="dash-grid">
 
-    <!-- LEFT: Premium breakdown -->
+    
     <div class="dash-col">
       <div class="dash-card">
         <div class="dash-card-header">
@@ -98,7 +83,7 @@
         </div>
       </div>
 
-      <!-- Compare with market -->
+      
       <div class="dash-card" style="background: var(--clr-surface-2);">
         <div class="dash-card-header">
           <span class="dash-card-icon">📈</span>
@@ -115,7 +100,7 @@
       </div>
     </div>
 
-    <!-- RIGHT: Risk factors + actions -->
+    
     <div class="dash-col">
 
       {% if result.risk_factors %}
@@ -135,7 +120,7 @@
       </div>
       {% endif %}
 
-      <!-- Recommended plans based on price band -->
+      
       <div class="dash-card dash-card--cta">
         <div class="cta-icon">🛡️</div>
         <h3>View Matching Plans</h3>
@@ -144,7 +129,7 @@
         <a href="/insurance/plans" class="btn-primary btn-full">View Insurance Plans →</a>
       </div>
 
-      <!-- PDF download CTA -->
+      
       <div class="dash-card" style="border: 1px solid var(--clr-border); text-align: center; padding: 24px;">
         <div style="font-size: 32px; margin-bottom: 12px;">📄</div>
         <h3 style="font-family: var(--font-display); font-size: 17px; margin-bottom: 8px;">Download Report</h3>
@@ -156,7 +141,7 @@
         </button>
       </div>
 
-      <!-- Disclaimer -->
+      
       <div class="dash-card--disclaimer dash-card" style="border: none;">
         <div class="disclaimer-icon">⚕</div>
         <p>

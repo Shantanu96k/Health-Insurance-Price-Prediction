@@ -1,28 +1,12 @@
-# app/utils/ai_health_tips.py
-"""
-AI Health Tips Engine
-======================
-Generates personalised, context-aware health tips based on the patient's
-full prediction result AND their form data.
-
-This goes beyond the basic suggestion engine by:
-  1. Combining disease + lifestyle + symptoms for targeted advice
-  2. Categorising tips: Do / Don't / Improve / Diet / Exercise
-  3. Using weighted scoring to prioritise most critical tips
-  4. Falling back gracefully if anything fails
-
-Post-Graduate Level Design:
-  - Rule engine with weighted conditions (like a decision table)
-  - Dynamic tip selection based on patient risk profile
-  - No external API dependency — 100% deterministic
-"""
+                             
+   
 
 from typing import Optional
 
-# ─────────────────────────────────────────────────────────────────────
-# TIP LIBRARY — DO / DON'T / IMPROVE / DIET / EXERCISE
-# Each tip has: text, conditions (any match triggers it), priority (1-5)
-# ─────────────────────────────────────────────────────────────────────
+                                                                       
+                                                      
+                                                                        
+                                                                       
 
 DO_TIPS = [
     {
@@ -346,22 +330,19 @@ EXERCISE_TIPS = [
 
 
 def _build_conditions(prediction_result: dict, form_data: dict) -> set:
-    """
-    Build a set of condition tags from patient data.
-    These tags are matched against tip conditions.
-    """
+       
     tags = {"always"}
 
-    # Disease
+             
     disease = prediction_result.get("predicted_disease", "")
     if disease:
         tags.add(f"disease:{disease}")
 
-    # Risk level
+                
     risk = prediction_result.get("risk_level", "low")
     tags.add(f"risk:{risk}")
 
-    # Lifestyle
+               
     if form_data.get("smoker"):
         tags.add("smoker:yes")
     if form_data.get("alcohol_use"):
@@ -378,7 +359,7 @@ def _build_conditions(prediction_result: dict, form_data: dict) -> set:
     if form_data.get("blood_sugar") == "high":
         tags.add("sugar:high")
 
-    # Family history
+                    
     if form_data.get("family_history_heart"):
         tags.add("family:heart")
     if form_data.get("family_history_diabetes"):
@@ -386,7 +367,7 @@ def _build_conditions(prediction_result: dict, form_data: dict) -> set:
     if form_data.get("family_history_cancer"):
         tags.add("family:cancer")
 
-    # Symptoms
+              
     symptoms = [
         "fever", "cough", "chest_pain", "shortness_of_breath",
         "fatigue", "headache", "joint_pain", "skin_rash", "nausea", "weight_loss"
@@ -399,10 +380,7 @@ def _build_conditions(prediction_result: dict, form_data: dict) -> set:
 
 
 def _select_tips(tip_library: list, patient_tags: set, max_tips: int = 5) -> list:
-    """
-    Score each tip against patient tags and return top N tips.
-    Scoring: sum of priorities for matched conditions.
-    """
+       
     scored = []
     for tip in tip_library:
         matched = False
@@ -414,29 +392,13 @@ def _select_tips(tip_library: list, patient_tags: set, max_tips: int = 5) -> lis
         if matched:
             scored.append((score, tip["text"]))
 
-    # Sort by score descending, take top N
+                                          
     scored.sort(key=lambda x: x[0], reverse=True)
     return [text for _, text in scored[:max_tips]]
 
 
 def get_ai_health_tips(prediction_result: dict, form_data: dict) -> dict:
-    """
-    Main entry point. Returns categorised health tips.
-
-    Args:
-        prediction_result: output from predict_disease()
-        form_data: patient's full form submission dict
-
-    Returns:
-        {
-            "do":       [list of do tips],
-            "dont":     [list of dont tips],
-            "improve":  [list of improvement tips],
-            "diet":     [list of diet tips],
-            "exercise": [list of exercise tips],
-            "summary":  str (one-line overall advice),
-        }
-    """
+       
     tags = _build_conditions(prediction_result, form_data)
 
     do_list       = _select_tips(DO_TIPS,      tags, max_tips=5)
@@ -445,7 +407,7 @@ def get_ai_health_tips(prediction_result: dict, form_data: dict) -> dict:
     diet_list     = _select_tips(DIET_TIPS,    tags, max_tips=4)
     exercise_list = _select_tips(EXERCISE_TIPS, tags, max_tips=3)
 
-    # Overall summary
+                     
     disease = prediction_result.get("predicted_disease", "your condition")
     risk    = prediction_result.get("risk_level", "medium")
     confidence = prediction_result.get("confidence_score", 0)

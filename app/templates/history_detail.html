@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <!-- Result Banner -->
+  
   <div class="risk-banner risk-banner--{{ prediction.risk_level | default('low') }}" style="margin-bottom:24px;">
     <div class="risk-banner-icon">
       {% if prediction.risk_level == 'high' %}⚠{% elif prediction.risk_level == 'medium' %}◈{% else %}✓{% endif %}
@@ -29,7 +29,7 @@
   <div class="dash-grid">
     <div class="dash-col">
 
-      <!-- AI Health Tips -->
+      
       {% if ai_tips %}
       <div class="dash-card">
         <div class="dash-card-header">
@@ -83,7 +83,7 @@
       </div>
       {% endif %}
 
-      <!-- Suggestions -->
+      
       <div class="dash-card">
         <div class="dash-card-header">
           <span class="dash-card-icon">🛡️</span>
@@ -100,7 +100,7 @@
 
     <div class="dash-col">
 
-      <!-- Form snapshot -->
+      
       {% if form_data %}
       <div class="dash-card">
         <div class="dash-card-header">
@@ -145,7 +145,7 @@
       </div>
       {% endif %}
 
-      <!-- Insurance CTA -->
+      
       <div class="dash-card dash-card--cta">
         <div class="cta-icon">🛡️</div>
         <h3>View Insurance Plan</h3>

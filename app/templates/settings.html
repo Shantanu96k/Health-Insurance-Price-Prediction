@@ -12,7 +12,7 @@
     <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
   </div>
 
-  <!-- Settings tabs -->
+  
   <div class="settings-tabs">
     <button class="settings-tab active" onclick="showTab('profile')">👤 Profile</button>
     <button class="settings-tab" onclick="showTab('health')">🩺 Health Info</button>
@@ -20,7 +20,7 @@
     <button class="settings-tab" onclick="showTab('danger')">🗑️ Delete Account</button>
   </div>
 
-  <!-- ── PROFILE TAB ─────────────────────────────────── -->
+  
   <div class="settings-panel" id="tab-profile">
     <form action="/patient/settings" method="POST" class="auth-form">
       <div class="form-card">
@@ -32,7 +32,7 @@
           </div>
         </div>
 
-        <!-- Avatar display -->
+        
         <div class="avatar-block">
           <div class="avatar-circle">{{ patient.full_name[0] | upper if patient.full_name else 'P' }}</div>
           <div>
@@ -116,7 +116,7 @@
     </form>
   </div>
 
-  <!-- ── HEALTH INFO TAB ─────────────────────────────── -->
+  
   <div class="settings-panel hidden" id="tab-health">
     <div class="form-card">
       <div class="card-header">
@@ -159,7 +159,7 @@
     </div>
   </div>
 
-  <!-- ── PREFERENCES TAB ────────────────────────────── -->
+  
   <div class="settings-panel hidden" id="tab-preferences">
     <div class="form-card">
       <div class="card-header">
@@ -226,7 +226,7 @@
         </div>
       </div>
 
-      <!-- Quick links -->
+      
       <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--clr-border);">
         <div style="font-size:13px; font-weight:700; color:var(--clr-text-2); margin-bottom:12px;">Quick Links</div>
         <div style="display:flex; flex-wrap:wrap; gap:10px;">
@@ -239,7 +239,7 @@
     </div>
   </div>
 
-  <!-- ── DANGER ZONE TAB ────────────────────────────── -->
+  
   <div class="settings-panel hidden" id="tab-danger">
     <div class="form-card" style="border-color:var(--clr-danger);">
       <div class="card-header">

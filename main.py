@@ -1,22 +1,4 @@
-# main.py
-"""
-MedPredict — FastAPI Entry Point (Enhanced)
-=============================================
-Run with:
-    uvicorn main:app --reload
-
-API docs:
-    http://localhost:8000/docs   ← Show in viva demo!
-
-New routes added:
-    /price/form       — Insurance price calculator
-    /price/calculate  — Run regression model
-    /price/result     — Show price estimate
-    /admin/           — Admin dashboard
-    /admin/patients   — All patients
-    /admin/flagged    — Flagged MRI cases
-"""
-
+         
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

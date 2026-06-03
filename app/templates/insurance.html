@@ -4,7 +4,7 @@
 {% block content %}
 <div class="insurance-page">
 
-  <!-- Page header -->
+  
   <div class="page-header">
     <div>
       <h1 class="page-title">Insurance Recommendation</h1>
@@ -15,7 +15,7 @@
     <a href="/patient/dashboard" class="btn-outline">&larr; Back to Dashboard</a>
   </div>
 
-  <!-- Risk context banner -->
+  
   <div class="risk-banner risk-banner--{{ risk_level | default('low') }}">
     <div class="risk-banner-icon">
       {% if risk_level == 'high' %}⚠{% elif risk_level == 'medium' %}◈{% else %}✓{% endif %}
@@ -34,10 +34,10 @@
     </div>
   </div>
 
-  <!-- ── PLAN CARDS ─────────────────────────────────────── -->
+  
   <div class="plans-grid">
 
-    <!-- Basic Plan -->
+    
     <div class="plan-card {% if recommended_plan == 'basic' %}plan-card--recommended{% endif %}">
       {% if recommended_plan == 'basic' %}
       <div class="plan-badge">Recommended for You</div>
@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    <!-- Standard Plan -->
+    
     <div class="plan-card {% if recommended_plan == 'standard' %}plan-card--recommended{% endif %}">
       {% if recommended_plan == 'standard' %}
       <div class="plan-badge">Recommended for You</div>
@@ -105,7 +105,7 @@
       </div>
     </div>
 
-    <!-- Premium Plan -->
+    
     <div class="plan-card {% if recommended_plan == 'premium' %}plan-card--recommended{% endif %}">
       {% if recommended_plan == 'premium' %}
       <div class="plan-badge">Recommended for You</div>
@@ -141,7 +141,7 @@
 
   </div>
 
-  <!-- ── Why this recommendation ────────────────────────── -->
+  
   <div class="insurance-why">
     <h3>Why we recommend this plan</h3>
     <p>{{ recommendation_reason | default('Based on your health assessment, we have matched you with the most suitable plan.') }}</p>
@@ -170,7 +170,7 @@
     </div>
   </div>
 
-  <!-- Disclaimer -->
+  
   <div class="insurance-disclaimer">
     <span class="disc-icon">⚕</span>
     <p>
@@ -180,7 +180,7 @@
     </p>
   </div>
 
-  <!-- Plan selected modal -->
+  
   <div class="modal-overlay hidden" id="planModal">
     <div class="modal-box">
       <div class="modal-icon">✓</div>

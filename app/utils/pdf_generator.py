@@ -1,22 +1,5 @@
-# app/utils/pdf_generator.py
-"""
-PDF Report Generator — ReportLab
-==================================
-Generates a clean, professional health report PDF for the patient.
-
-Explain in viva:
-  "We use ReportLab — a pure Python PDF library — to generate a structured
-   health report that the patient can download and share with their doctor.
-   This bridges the gap between digital prediction and real-world consultation."
-
-The PDF includes:
-  - Patient header (name, date)
-  - Predicted condition + risk level
-  - Health score (wellness index)
-  - AI health tips (do/don't/diet/exercise)
-  - Insurance recommendation
-  - Medical disclaimer
-"""
+                            
+   
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -31,7 +14,7 @@ from io import BytesIO
 from datetime import datetime
 
 
-# ── Colour palette ─────────────────────────────────────────────────────
+                                                                         
 CLR_PRIMARY   = colors.HexColor("#3b82f6")
 CLR_HIGH      = colors.HexColor("#ef4444")
 CLR_MEDIUM    = colors.HexColor("#f97316")
@@ -42,7 +25,7 @@ CLR_BORDER    = colors.HexColor("#e2e8f0")
 CLR_TEXT_2    = colors.HexColor("#64748b")
 
 
-# ── Risk colour helper ─────────────────────────────────────────────────
+                                                                         
 def _risk_color(risk: str) -> colors.Color:
     return {"high": CLR_HIGH, "medium": CLR_MEDIUM, "low": CLR_LOW}.get(risk, CLR_TEXT_2)
 
@@ -54,19 +37,7 @@ def generate_health_report_pdf(
     health_score: dict,
     insurance_plan: dict | None = None,
 ) -> bytes:
-    """
-    Generate a PDF health report and return it as bytes.
-
-    Args:
-        patient_name:  Patient's full name
-        prediction:    dict from predictions table
-        ai_tips:       dict from ai_health_tips engine
-        health_score:  dict from calculate_health_score()
-        insurance_plan: optional dict (plan_name, monthly_cost, plan_type)
-
-    Returns:
-        bytes — ready to send as a file download response
-    """
+       
     buffer = BytesIO()
     doc    = SimpleDocTemplate(
         buffer, pagesize=A4,
@@ -76,7 +47,7 @@ def generate_health_report_pdf(
 
     styles = getSampleStyleSheet()
 
-    # ── Custom styles ──────────────────────────────────────────────────
+                                                                         
     title_style = ParagraphStyle(
         "Title", parent=styles["Title"],
         fontSize=24, textColor=CLR_DARK, spaceAfter=4,
@@ -109,13 +80,13 @@ def generate_health_report_pdf(
 
     story = []
 
-    # ── HEADER ─────────────────────────────────────────────────────────
+                                                                         
     story.append(Paragraph("✦ MedPredict", title_style))
     story.append(Paragraph("AI Health Intelligence — Personalised Health Report", subtitle_style))
     story.append(HRFlowable(width="100%", thickness=1, color=CLR_PRIMARY))
     story.append(Spacer(1, 0.4*cm))
 
-    # ── Patient info row ───────────────────────────────────────────────
+                                                                         
     report_date = datetime.now().strftime("%d %B %Y, %I:%M %p")
     created_at  = prediction.get("created_at", "")[:10] if prediction.get("created_at") else report_date
     info_data = [
@@ -139,7 +110,7 @@ def generate_health_report_pdf(
     story.append(info_table)
     story.append(Spacer(1, 0.5*cm))
 
-    # ── PREDICTION SUMMARY ─────────────────────────────────────────────
+                                                                         
     story.append(Paragraph("🩺 Prediction Summary", section_style))
     pred_disease    = prediction.get("predicted_disease", "—")
     confidence      = prediction.get("confidence_score", 0)
@@ -172,7 +143,7 @@ def generate_health_report_pdf(
     story.append(pred_table)
     story.append(Spacer(1, 0.4*cm))
 
-    # ── HEALTH SCORE ───────────────────────────────────────────────────
+                                                                         
     if health_score:
         story.append(Paragraph("📊 Wellness Score (0–100)", section_style))
         hs_score = health_score.get("score", 0)
@@ -201,7 +172,7 @@ def generate_health_report_pdf(
         story.append(hs_table)
         story.append(Spacer(1, 0.4*cm))
 
-    # ── AI HEALTH TIPS ─────────────────────────────────────────────────
+                                                                         
     def _tips_section(title: str, tips: list, bullet: str = "•"):
         if not tips:
             return
@@ -217,7 +188,7 @@ def generate_health_report_pdf(
         _tips_section("🥗 Diet Recommendations",       ai_tips.get("diet", []),     "●")
         _tips_section("🏃 Exercise Plan",              ai_tips.get("exercise", []), "▸")
 
-    # ── INSURANCE ──────────────────────────────────────────────────────
+                                                                         
     if insurance_plan:
         story.append(Paragraph("🛡️ Recommended Insurance Plan", section_style))
         ins_data = [
@@ -239,7 +210,7 @@ def generate_health_report_pdf(
         story.append(ins_table)
         story.append(Spacer(1, 0.4*cm))
 
-    # ── DISCLAIMER ─────────────────────────────────────────────────────
+                                                                         
     story.append(HRFlowable(width="100%", thickness=0.5, color=CLR_BORDER))
     story.append(Spacer(1, 0.3*cm))
     story.append(Paragraph(

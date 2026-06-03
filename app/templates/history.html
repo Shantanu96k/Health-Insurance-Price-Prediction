@@ -6,50 +6,86 @@
 
   <div class="page-header">
     <div>
-      <h1 class="page-title">Prediction History</h1>
-      <p class="page-subtitle">All {{ total }} health assessment{{ 's' if total != 1 else '' }} on your account.</p>
+      <h1 class="page-title">Prediction & Price History</h1>
+      <p class="page-subtitle">All health assessments and insurance premium estimates on your account.</p>
     </div>
-    <div style="display:flex; gap:12px;">
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
       <a href="/patient/dashboard" class="btn-outline">&larr; Dashboard</a>
       <a href="/patient/form" class="btn-primary">+ New Assessment</a>
+      <a href="/price/form" class="btn-outline">+ Price Calculator</a>
     </div>
   </div>
 
-  {% if not predictions %}
-  <!-- Empty state -->
+  {% if not predictions and not price_history %}
+  
   <div style="text-align:center; padding:60px 24px; background:var(--clr-surface); border-radius:var(--radius-xl); border:1px solid var(--clr-border);">
     <div style="font-size:56px; margin-bottom:16px;">📋</div>
     <h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:8px;">No History Yet</h2>
-    <p style="color:var(--clr-text-2); margin-bottom:24px;">Complete your first health assessment to see results here.</p>
-    <a href="/patient/form" class="btn-primary">Start Assessment →</a>
+    <p style="color:var(--clr-text-2); margin-bottom:24px;">Complete your first health assessment or price calculation to see results here.</p>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+      <a href="/patient/form" class="btn-primary">Start Assessment →</a>
+      <a href="/price/form" class="btn-outline">Use Price Calculator →</a>
+    </div>
   </div>
   {% else %}
 
-  <!-- Stats row -->
+  
   <div class="summary-strip" style="grid-template-columns: repeat(3,1fr); margin-bottom:24px;">
     <div class="summary-card">
-      <div class="sumcard-label">Total Assessments</div>
+      <div class="sumcard-label">Health Assessments</div>
       <div class="sumcard-value">{{ total }}</div>
-      <div class="sumcard-sub">All-time records</div>
+      <div class="sumcard-sub">Health AI results</div>
     </div>
     <div class="summary-card">
-      <div class="sumcard-label">Latest Risk Level</div>
+      <div class="sumcard-label">Premium Estimates</div>
+      <div class="sumcard-value">{{ price_total }}</div>
+      <div class="sumcard-sub">Price calculator results</div>
+    </div>
+    <div class="summary-card">
+      <div class="sumcard-label">Latest Activity</div>
       <div class="sumcard-value">
-        <span class="risk-badge risk-{{ predictions[0].risk_level }}">
-          {{ predictions[0].risk_level | title }}
-        </span>
+        {% if predictions %}
+          {{ predictions[0].predicted_disease }}
+        {% elif price_history %}
+          ₹{{ "{:,}".format(price_history[0].annual_premium | default(0) | int) }}
+        {% else %}
+          None
+        {% endif %}
       </div>
-      <div class="sumcard-sub">Most recent assessment</div>
+      <div class="sumcard-sub">Most recent entry</div>
+    </div>
+  </div>
+  <div class="summary-strip" style="grid-template-columns: repeat(3,1fr); margin-bottom:24px;">
+    <div class="summary-card">
+      <div class="sumcard-label">Latest Risk</div>
+      <div class="sumcard-value">
+        {% if predictions %}
+          <span class="risk-badge risk-{{ predictions[0].risk_level }}">
+            {{ predictions[0].risk_level | title }}
+          </span>
+        {% else %}
+          —
+        {% endif %}
+      </div>
+      <div class="sumcard-sub">Latest health model output</div>
     </div>
     <div class="summary-card">
       <div class="sumcard-label">Latest Confidence</div>
-      <div class="sumcard-value">{{ predictions[0].confidence_score }}%</div>
-      <div class="sumcard-sub">ML prediction confidence</div>
+      <div class="sumcard-value">
+        {% if predictions %}
+          {{ predictions[0].confidence_score }}%
+        {% else %}
+          N/A
+        {% endif %}
+      </div>
+      <div class="sumcard-sub">Prediction confidence</div>
     </div>
   </div>
 
-  <!-- History list -->
-  <div class="history-list">
+  {% if predictions %}
+  <div class="section-block">
+    <div class="section-title">Health Assessment Records</div>
+    <div class="history-list">
     {% for pred in predictions %}
     <div class="history-card {% if loop.first %}history-card--latest{% endif %}">
       {% if loop.first %}
@@ -88,7 +124,7 @@
         </div>
       </div>
 
-      <!-- Mini confidence bar -->
+      
       <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--clr-border);">
         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--clr-text-3); margin-bottom:4px;">
           <span>Prediction confidence</span>
@@ -101,8 +137,51 @@
     </div>
     {% endfor %}
   </div>
-
   {% endif %}
+
+  {% if price_history %}
+  <div class="section-block" style="margin-top:32px;">
+    <div class="section-title">Insurance Premium History</div>
+    <div class="history-list">
+      {% for item in price_history %}
+      <div class="history-card {% if loop.first %}history-card--latest{% endif %}">
+        {% if loop.first %}
+        <div class="history-latest-badge">Latest</div>
+        {% endif %}
+        <div class="history-card-main">
+          <div class="history-card-left">
+            {% set annual_premium = item.annual_premium | default(0) | int %}
+          <div class="history-disease">₹{{ "{:,}".format(annual_premium) }} / year</div>
+            <div class="history-date">{{ item.created_at | default('Date unknown') }}</div>
+          </div>
+          <div class="history-card-center">
+            <span class="risk-badge risk-{{ item.premium_band }}">
+              {{ item.premium_band | title }} Tier
+            </span>
+          </div>
+          <div class="history-card-stats">
+            <div class="hist-stat">
+              <span class="hist-stat-label">Monthly</span>
+              <span class="hist-stat-value">₹{{ "{:,}".format(item.monthly_premium | default(0) | int) }}</span>
+            </div>
+            <div class="hist-stat">
+              <span class="hist-stat-label">Type</span>
+              <span class="hist-stat-value">Price Estimate</span>
+            </div>
+          </div>
+          <div class="history-card-action">
+            <a href="/price/form" class="btn-outline" style="padding:8px 16px; font-size:13px;">
+              Recalculate
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
 </div>
 {% endblock %}
 

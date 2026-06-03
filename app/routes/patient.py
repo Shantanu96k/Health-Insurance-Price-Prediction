@@ -1,4 +1,4 @@
-# app/routes/patient.py
+                       
 """
 Patient routes — Health form, submission, dashboard, history, settings.
 
@@ -40,7 +40,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-# ── Auth guard ────────────────────────────────────────────────────────
+                                                                        
 
 def require_login(request: Request):
     return request.session.get("patient_id")
@@ -52,7 +52,7 @@ def add_flash(request: Request, category: str, message: str):
     request.session["messages"].append((category, message))
 
 
-# ── GET /patient/form ─────────────────────────────────────────────────
+                                                                        
 
 @router.get("/form")
 async def show_form(request: Request):
@@ -69,14 +69,14 @@ async def show_form(request: Request):
     })
 
 
-# ── POST /patient/submit-form ─────────────────────────────────────────
+                                                                        
 
 @router.post("/submit-form")
 async def submit_form(
     request:                 Request,
     patient_id:              str  = Form(...),
 
-    # Symptoms
+              
     fever:                   Optional[str] = Form(None),
     cough:                   Optional[str] = Form(None),
     chest_pain:              Optional[str] = Form(None),
@@ -88,7 +88,7 @@ async def submit_form(
     nausea:                  Optional[str] = Form(None),
     weight_loss:             Optional[str] = Form(None),
 
-    # Lifestyle
+               
     smoker:                  str = Form(...),
     alcohol_use:             str = Form(...),
     exercise_frequency:      str = Form(...),
@@ -96,12 +96,12 @@ async def submit_form(
     blood_pressure:          str = Form(...),
     blood_sugar:             str = Form(...),
 
-    # Family history
+                    
     family_history_heart:    str = Form(...),
     family_history_diabetes: str = Form(...),
     family_history_cancer:   str = Form(...),
 
-    # MRI upload (optional)
+                           
     mri_file: Optional[UploadFile] = File(None),
 ):
     """
@@ -143,7 +143,7 @@ async def submit_form(
         "family_history_cancer":   family_history_cancer == "1",
     }
 
-    # ── MRI handling ──────────────────────────────────────────────────
+                                                                        
     mri_uploaded  = False
     mri_file_path = None
     mri_bytes     = None
@@ -153,7 +153,7 @@ async def submit_form(
         mri_uploaded  = True
         mri_file_path = f"uploads/{patient_id}/{mri_file.filename}"
 
-    # ── Save medical_history ──────────────────────────────────────────
+                                                                        
     history_id  = str(uuid.uuid4())
     history_row = {
         "id":            history_id,
@@ -169,13 +169,13 @@ async def submit_form(
         add_flash(request, "error", f"Failed to save health data: {str(e)}")
         return RedirectResponse("/patient/form", status_code=302)
 
-    # ── ML prediction ─────────────────────────────────────────────────
+                                                                        
     prediction_result = predict_disease(form_data)
 
-    # ── Health Score ──────────────────────────────────────────────────
+                                                                        
     health_score = calculate_health_score(prediction_result, form_data)
 
-    # ── MRI validation ────────────────────────────────────────────────
+                                                                        
     mri_result = {
         "consistency":    "no_mri",
         "honesty_flag":   "trusted",
@@ -185,16 +185,16 @@ async def submit_form(
     if mri_bytes:
         mri_result = validate_mri_upload(mri_bytes, form_data)
 
-    # ── Health suggestions ────────────────────────────────────────────
+                                                                        
     suggestions = get_suggestions(prediction_result["predicted_disease"])
 
-    # ── AI Health Tips ────────────────────────────────────────────────
+                                                                        
     try:
         ai_tips = get_ai_health_tips(prediction_result, form_data)
     except Exception:
         ai_tips = {"do": [], "dont": [], "improve": [], "diet": [], "exercise": []}
 
-    # ── Save prediction ───────────────────────────────────────────────
+                                                                        
     prediction_id = str(uuid.uuid4())
     pred_row = {
         "id":                prediction_id,
@@ -217,7 +217,7 @@ async def submit_form(
         add_flash(request, "error", f"Failed to save prediction: {str(e)}")
         return RedirectResponse("/patient/form", status_code=302)
 
-    # ── Insurance recommendation ──────────────────────────────────────
+                                                                        
     insurance_plan = suggest_insurance(prediction_result["risk_level"])
     try:
         supabase.table("insurance_recommendations").insert({
@@ -238,7 +238,7 @@ async def submit_form(
     return RedirectResponse("/patient/dashboard", status_code=302)
 
 
-# ── GET /patient/dashboard ────────────────────────────────────────────
+                                                                        
 
 @router.get("/dashboard")
 async def dashboard(request: Request):
@@ -256,7 +256,7 @@ async def dashboard(request: Request):
 
     if prediction_id:
         try:
-            res = supabase.table("predictions") \
+            res = supabase.table("predictions")\
                 .select("*").eq("id", prediction_id).single().execute()
             prediction = res.data
         except Exception:
@@ -264,8 +264,8 @@ async def dashboard(request: Request):
 
     if not prediction:
         try:
-            res = supabase.table("predictions") \
-                .select("*").eq("patient_id", patient_id) \
+            res = supabase.table("predictions")\
+                .select("*").eq("patient_id", patient_id)\
                 .order("created_at", desc=True).limit(1).execute()
             if res.data:
                 prediction = res.data[0]
@@ -283,13 +283,13 @@ async def dashboard(request: Request):
         except Exception:
             ai_tips = {"do": [], "dont": [], "improve": [], "diet": [], "exercise": []}
 
-    # ── Health Score ──────────────────────────────────────────────────
+                                                                        
     health_score = None
     if prediction:
-        # Try DB-stored score first, compute if not available
+                                                             
         stored_score = prediction.get("health_score")
         if stored_score is not None:
-            # Reconstruct full health_score dict from score value
+                                                                 
             from app.models.ml_model import calculate_health_score
             try:
                 form_snap = json.loads(prediction.get("form_snapshot", "{}"))
@@ -313,7 +313,7 @@ async def dashboard(request: Request):
             except Exception:
                 health_score = None
 
-    # ── Doctor Alert for HIGH RISK ─────────────────────────────────────
+                                                                         
     doctor_alert = None
     if prediction and prediction.get("risk_level") == "high":
         try:
@@ -321,7 +321,7 @@ async def dashboard(request: Request):
             confidence = prediction.get("confidence_score", 0)
             form_snap  = json.loads(prediction.get("form_snapshot", "{}"))
 
-            # Build a concise doctor-ready summary
+                                                  
             risk_factors = []
             if form_snap.get("smoker"):               risk_factors.append("Smoker")
             if form_snap.get("alcohol_use"):           risk_factors.append("Alcohol use")
@@ -358,10 +358,10 @@ async def dashboard(request: Request):
         except Exception:
             doctor_alert = None
 
-    # ── Count total predictions ────────────────────────────────────────
+                                                                         
     total_predictions = 0
     try:
-        res = supabase.table("predictions").select("id", count="exact") \
+        res = supabase.table("predictions").select("id", count="exact")\
             .eq("patient_id", patient_id).execute()
         total_predictions = res.count or 0
     except Exception:
@@ -380,7 +380,7 @@ async def dashboard(request: Request):
     })
 
 
-# ── GET /patient/history ──────────────────────────────────────────────
+                                                                        
 
 @router.get("/history")
 async def prediction_history(request: Request):
@@ -390,26 +390,48 @@ async def prediction_history(request: Request):
         return RedirectResponse("/auth/login", status_code=302)
 
     predictions = []
+    price_history = []
     try:
-        res = supabase.table("predictions") \
-            .select("id, predicted_disease, risk_level, confidence_score, honesty_flag, mri_consistency, health_score, created_at") \
-            .eq("patient_id", patient_id) \
-            .order("created_at", desc=True) \
+        res = supabase.table("predictions")\
+            .select("id, predicted_disease, risk_level, confidence_score, honesty_flag, mri_consistency, health_score, created_at")\
+            .eq("patient_id", patient_id)\
+            .order("created_at", desc=True)\
             .execute()
         predictions = res.data or []
     except Exception:
         predictions = []
 
+    try:
+        res = supabase.table("insurance_price_predictions") \
+            .select("id, annual_premium, monthly_premium, premium_band, region, age, smoker, created_at") \
+            .eq("patient_id", patient_id) \
+            .order("created_at", desc=True) \
+            .execute()
+        price_history = res.data or []
+        for item in price_history:
+            try:
+                item["annual_premium"] = int(item.get("annual_premium") or 0)
+            except Exception:
+                item["annual_premium"] = 0
+            try:
+                item["monthly_premium"] = int(item.get("monthly_premium") or 0)
+            except Exception:
+                item["monthly_premium"] = 0
+    except Exception:
+        price_history = []
+
     messages = request.session.pop("messages", [])
     return templates.TemplateResponse("history.html", {
-        "request":     request,
-        "predictions": predictions,
-        "messages":    messages,
-        "total":       len(predictions),
+        "request":       request,
+        "predictions":   predictions,
+        "price_history": price_history,
+        "messages":      messages,
+        "total":         len(predictions),
+        "price_total":   len(price_history),
     })
 
 
-# ── GET /patient/history/{prediction_id} ──────────────────────────────
+                                                                        
 
 @router.get("/history/{prediction_id}")
 async def history_detail(request: Request, prediction_id: str):
@@ -423,8 +445,8 @@ async def history_detail(request: Request, prediction_id: str):
     form_data   = {}
 
     try:
-        res = supabase.table("predictions") \
-            .select("*").eq("id", prediction_id) \
+        res = supabase.table("predictions")\
+            .select("*").eq("id", prediction_id)\
             .eq("patient_id", patient_id).single().execute()
         prediction = res.data
     except Exception:
@@ -457,7 +479,7 @@ async def history_detail(request: Request, prediction_id: str):
     })
 
 
-# ── GET /patient/settings ─────────────────────────────────────────────
+                                                                        
 
 @router.get("/settings")
 async def settings_page(request: Request):
@@ -467,7 +489,7 @@ async def settings_page(request: Request):
 
     patient = {}
     try:
-        res = supabase.table("patient") \
+        res = supabase.table("patient")\
             .select("*").eq("id", patient_id).single().execute()
         patient = res.data or {}
     except Exception:
@@ -481,7 +503,7 @@ async def settings_page(request: Request):
     })
 
 
-# ── POST /patient/settings ────────────────────────────────────────────
+                                                                        
 
 @router.post("/settings")
 async def update_settings(
@@ -520,7 +542,7 @@ async def update_settings(
     return RedirectResponse("/patient/settings", status_code=302)
 
 
-# ── POST /patient/delete-account ─────────────────────────────────────
+                                                                       
 
 @router.post("/delete-account")
 async def delete_account(request: Request, confirm_delete: str = Form(...)):
@@ -544,8 +566,8 @@ async def delete_account(request: Request, confirm_delete: str = Form(...)):
         return RedirectResponse("/patient/settings", status_code=302)
 
 
-# ── GET /patient/api/trend ────────────────────────────────────────────
-# NEW — Phase 3: Trend Chart Data
+                                                                        
+                                 
 
 @router.get("/api/trend")
 async def api_trend(request: Request):
@@ -563,10 +585,10 @@ async def api_trend(request: Request):
         return JSONResponse({"error": "Not authenticated"}, status_code=401)
 
     try:
-        res = supabase.table("predictions") \
-            .select("predicted_disease, risk_level, confidence_score, health_score, created_at") \
-            .eq("patient_id", patient_id) \
-            .order("created_at", desc=False) \
+        res = supabase.table("predictions")\
+            .select("predicted_disease, risk_level, confidence_score, health_score, created_at")\
+            .eq("patient_id", patient_id)\
+            .order("created_at", desc=False)\
             .limit(10).execute()
         preds = res.data or []
     except Exception:
@@ -594,8 +616,8 @@ async def api_trend(request: Request):
     })
 
 
-# ── GET /patient/report/{prediction_id} ───────────────────────────────
-# NEW — Phase 4: PDF Download
+                                                                        
+                             
 
 @router.get("/report/{prediction_id}")
 async def download_report(request: Request, prediction_id: str):
@@ -611,10 +633,10 @@ async def download_report(request: Request, prediction_id: str):
     if not patient_id:
         return RedirectResponse("/auth/login", status_code=302)
 
-    # Fetch prediction
+                      
     try:
-        res = supabase.table("predictions") \
-            .select("*").eq("id", prediction_id) \
+        res = supabase.table("predictions")\
+            .select("*").eq("id", prediction_id)\
             .eq("patient_id", patient_id).single().execute()
         prediction = res.data
     except Exception:
@@ -624,10 +646,10 @@ async def download_report(request: Request, prediction_id: str):
         add_flash(request, "error", "Report not found.")
         return RedirectResponse("/patient/history", status_code=302)
 
-    # Fetch patient name
+                        
     patient_name = request.session.get("patient_name", "Patient")
 
-    # Parse ai_tips and form_snapshot
+                                     
     try:
         ai_tips = json.loads(prediction.get("ai_tips", "{}"))
     except Exception:
@@ -638,7 +660,7 @@ async def download_report(request: Request, prediction_id: str):
     except Exception:
         form_snap = {}
 
-    # Compute health score
+                          
     try:
         from app.models.ml_model import calculate_health_score
         health_score = calculate_health_score(
@@ -650,18 +672,18 @@ async def download_report(request: Request, prediction_id: str):
     except Exception:
         health_score = None
 
-    # Fetch insurance plan
+                          
     insurance_plan = None
     try:
-        ins_res = supabase.table("insurance_recommendations") \
-            .select("plan_name, plan_type, monthly_cost") \
+        ins_res = supabase.table("insurance_recommendations")\
+            .select("plan_name, plan_type, monthly_cost")\
             .eq("prediction_id", prediction_id).limit(1).execute()
         if ins_res.data:
             insurance_plan = ins_res.data[0]
     except Exception:
         pass
 
-    # Generate PDF bytes
+                        
     from app.utils.pdf_generator import generate_health_report_pdf
     pdf_bytes = generate_health_report_pdf(
         patient_name  = patient_name,

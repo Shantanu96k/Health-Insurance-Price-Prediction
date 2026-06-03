@@ -1,17 +1,3 @@
-# app/models/insurance_rules.py
-"""
-Insurance Plan Rules
-=====================
-Pure rule-based engine — no ML needed.
-Maps risk_level → insurance plan details.
-
-Easy to explain in viva:
-  "Low risk → basic plan, Medium → standard, High → premium.
-   The plan details are defined as a dictionary.
-   This is a classic rule-based expert system."
-"""
-
-# ── All available plans ────────────────────────────────────────────────
 INSURANCE_PLANS = {
     "basic": {
         "plan_name":  "BasicCare Shield",
@@ -70,7 +56,7 @@ INSURANCE_PLANS = {
     },
 }
 
-# ── Risk level → plan key mapping ─────────────────────────────────────
+                                                                        
 _RISK_TO_PLAN = {
     "low":    "basic",
     "medium": "standard",
@@ -79,14 +65,6 @@ _RISK_TO_PLAN = {
 
 
 def suggest_insurance(risk_level: str) -> dict:
-    """
-    Returns the recommended insurance plan dict based on risk level.
-
-    Args:
-        risk_level: one of 'low', 'medium', 'high'
-
-    Returns:
-        Full plan dict from INSURANCE_PLANS
-    """
+       
     plan_key = _RISK_TO_PLAN.get(risk_level, "basic")
     return INSURANCE_PLANS[plan_key]
