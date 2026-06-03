@@ -240,7 +240,7 @@ async def admin_patient_detail(request: Request, patient_id: str):
 
     try:
         predictions = supabase.table("predictions")\
-            .select("id, predicted_disease, risk_level, confidence_score, health_score, honesty_flag, created_at")\
+            .select("id, predicted_disease, risk_level, confidence_score, honesty_flag, created_at")\
             .eq("patient_id", patient_id)\
             .order("created_at", desc=True).execute().data or []
     except Exception:
@@ -363,7 +363,7 @@ async def admin_predictions(request: Request, page: int = 1, risk: str = "", dis
 
     try:
         query = supabase.table("predictions")\
-            .select("id, patient_id, predicted_disease, risk_level, confidence_score, health_score, honesty_flag, mri_consistency, created_at")\
+            .select("id, patient_id, predicted_disease, risk_level, confidence_score, honesty_flag, mri_consistency, created_at")\
             .order("created_at", desc=True)
 
         if risk:
@@ -525,7 +525,7 @@ async def admin_export(request: Request, table: str = "patients"):
 
         elif table == "predictions":
             rows = supabase.table("predictions")\
-                .select("id, patient_id, predicted_disease, risk_level, confidence_score, health_score, honesty_flag, mri_consistency, created_at")\
+                .select("id, patient_id, predicted_disease, risk_level, confidence_score, honesty_flag, mri_consistency, created_at")\
                 .order("created_at", desc=True).execute().data or []
             if rows:
                 writer.writerow(rows[0].keys())

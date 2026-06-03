@@ -208,7 +208,6 @@ async def submit_form(
         "suggestions":       json.dumps(suggestions),
         "ai_tips":           json.dumps(ai_tips),
         "form_snapshot":     json.dumps(form_data),
-        "health_score":      health_score["score"],
     }
 
     try:
@@ -393,7 +392,7 @@ async def prediction_history(request: Request):
     price_history = []
     try:
         res = supabase.table("predictions")\
-            .select("id, predicted_disease, risk_level, confidence_score, honesty_flag, mri_consistency, health_score, created_at")\
+            .select("id, predicted_disease, risk_level, confidence_score, honesty_flag, mri_consistency, created_at")\
             .eq("patient_id", patient_id)\
             .order("created_at", desc=True)\
             .execute()
@@ -586,7 +585,7 @@ async def api_trend(request: Request):
 
     try:
         res = supabase.table("predictions")\
-            .select("predicted_disease, risk_level, confidence_score, health_score, created_at")\
+            .select("predicted_disease, risk_level, confidence_score, form_snapshot, created_at")\
             .eq("patient_id", patient_id)\
             .order("created_at", desc=False)\
             .limit(10).execute()
@@ -601,10 +600,23 @@ async def api_trend(request: Request):
     risks   = []
     diseases= []
 
+    from app.models.ml_model import calculate_health_score
     for p in preds:
         date_str = p.get("created_at", "")[:10] if p.get("created_at") else "—"
         labels.append(date_str)
-        scores.append(p.get("health_score") or 50)
+        
+        try:
+            form_snap = json.loads(p.get("form_snapshot", "{}"))
+            hs = calculate_health_score(
+                {"predicted_disease": p.get("predicted_disease", ""),
+                 "risk_level": p.get("risk_level", "low"),
+                 "confidence_score": p.get("confidence_score", 50)},
+                form_snap
+            )
+            scores.append(hs["score"])
+        except Exception:
+            scores.append(50)
+            
         risks.append(risk_map.get(p.get("risk_level", "low"), 25))
         diseases.append(p.get("predicted_disease", "Unknown"))
 
